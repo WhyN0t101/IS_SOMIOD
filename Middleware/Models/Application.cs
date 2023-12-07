@@ -5,7 +5,7 @@ using System.Web;
 
 namespace Middleware.Models
 {
-    public class Class1
+    public class Application
     {
     }
 }

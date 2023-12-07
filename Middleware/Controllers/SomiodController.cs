@@ -9,7 +9,8 @@ namespace Middleware.Controllers
 {
     public class SomiodController : ApiController
     {
-        // GET: api/Somiod
+        //GET: api/somiod
+        [Route("api/somiod")]
         public IEnumerable<string> Get()
         {
             return new string[] { "value1", "value2" };
