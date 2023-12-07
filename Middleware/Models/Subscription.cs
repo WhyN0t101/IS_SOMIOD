@@ -5,7 +5,14 @@ using System.Web;
 
 namespace Middleware.Models
 {
-    public class Class1
+    public class Subscription
     {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public DateTime Creation_dt { get; set; }
+        public int Parent { get; set; }
+        public string Event { get; set; }
+        public string Endpoint { get; set; }
+        public string Res_type  { get; set; }
     }
 }
