@@ -94,6 +94,10 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Handler\AppHandler.cs" />
+    <Compile Include="Models\Subscription.cs" />
+    <Compile Include="Models\Container.cs" />
+    <Compile Include="Models\Data.cs" />
     <Compile Include="Models\Application.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

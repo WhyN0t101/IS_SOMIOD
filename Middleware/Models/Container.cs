@@ -5,11 +5,12 @@ using System.Web;
 
 namespace Middleware.Models
 {
-    public class Application
+    public class Container
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public DateTime Creation_dt { get; set; }
         public string Res_type { get; set; }
+        public int Parent { get; set; }
+
     }
 }
