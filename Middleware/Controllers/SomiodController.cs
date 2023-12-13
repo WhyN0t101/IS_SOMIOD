@@ -1,92 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Formatting;
 using System.Web.Http;
+using Middleware.Handler;
 using Middleware.Models;
-
 namespace Middleware.Controllers
 {
-    [RoutePrefix("api/somiod")]
     public class SomiodController : ApiController
     {
-        private  List<Application> applications = new List<Application>
-        {
-            new Application { Id = 1, Name = "App1", Creation_dt = DateTime.Now },
-            new Application { Id = 2, Name = "App2", Creation_dt = DateTime.UtcNow },
-            new Application { Id = 3, Name = "App3", Creation_dt = DateTime.Now }
-        };
+    
 
-        // GET: api/somiod
-        [HttpGet, Route("")]
-        public IHttpActionResult GetAllApplications()
+        private string connStr = Properties.Settings.Default.connStr;
+
+        //GET: api/somiod
+        [Route("api/somiod")]
+        public HttpResponseMessage GetAllApplications()
         {
-            return Ok(applications);
+            List<Application> objs;
+            var formatter = new XmlMediaTypeFormatter();
+
+            try
+            {
+                objs = AppHandler.GetAllAppications();
+            }
+            catch (System.Exception)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new Application(), formatter);
+            }
+
+            return Request.CreateResponse(HttpStatusCode.OK, objs, formatter);
         }
 
-        // GET: api/somiod/applications/1
-        [HttpGet, Route("applications/{id}")]
-        public IHttpActionResult GetApplicationById(int id)
+        // GET: api/Somiod/5
+        [Route("api/somiod/{application_name}")]
+        [HttpGet]
+        public HttpResponseMessage GetApplication(string application_name)
         {
-            var application = applications.Find(a => a.Id == id);
-            if (application == null)
+            Application app;
+            var formatter = new XmlMediaTypeFormatter();
+            try
             {
-                return NotFound();
+                app = AppHandler.GetApplicationFromDatabase(application_name);
             }
-
-
-        // POST: api/somiod/applications
-        [HttpPost, Route("applications")]
-        public IHttpActionResult CreateApplication([FromBody] Application newApplication)
-        {
-            if (newApplication == null)
+            catch(System.Exception)
             {
-                return BadRequest("Invalid data provided for creating an application.");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new Application(),formatter);
             }
-
-            // Logic for creating a new application
-            newApplication.Id = applications.Count + 1; // Assign a new ID (Replace with appropriate logic)
-
-            applications.Add(newApplication);
-
-            return Created(new Uri(Request.RequestUri + "/" + newApplication.Id), newApplication);
+            if(app == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound,new Application(), formatter);    
+            }
+            return Request.CreateResponse(HttpStatusCode.OK,app, formatter);
         }
 
-        // PUT: api/somiod/applications/1
-        [HttpPut, Route("applications/{id}")]
-        public IHttpActionResult UpdateApplication(int id, [FromBody] Application updatedApplication)
+        // POST: api/Somiod
+        [Route("api/somiod")]
+        [HttpPost]
+        public HttpResponseMessage PostApplication([FromBody] Application newApplication)
         {
-            if (updatedApplication == null)
+            if (newApplication == null || newApplication.Res_type != "application")
             {
-                return BadRequest("Invalid data provided for updating the application.");
+                return Request.CreateResponse<Application>(HttpStatusCode.BadRequest, null);
             }
 
-            var existingApplication = applications.Find(a => a.Id == id);
+            Application app;
 
-            if (existingApplication == null)
+            try
             {
-                return NotFound();
+                app = AppHandler.PostToDatabase(newApplication);
+            }
+            catch (System.Exception)
+            {
+                return Request.CreateResponse<Application>(HttpStatusCode.BadRequest, null);
             }
 
-            // Logic for updating the application
-            existingApplication.Name = updatedApplication.Name; // Update other properties as needed
-
-            return Ok(existingApplication);
+            return Request.CreateResponse<Application>(HttpStatusCode.Created, app);
         }
 
-        // DELETE: api/somiod/applications/1
-        [HttpDelete, Route("applications/{id}")]
-        public IHttpActionResult DeleteApplication(int id)
+        // PUT: api/Somiod/5
+        public void Put(int id, [FromBody]string value)
         {
-            var applicationToRemove = applications.Find(a => a.Id == id);
+            Ok();
+        }
 
-            if (applicationToRemove == null)
-            {
-                return NotFound();
-            }
-
-            // Logic for deleting the application
-            applications.Remove(applicationToRemove);
-
-            return Ok();
+        // DELETE: api/Somiod/5
+        public void Delete(int id)
+        {
+            Ok();
         }
     }
 }
