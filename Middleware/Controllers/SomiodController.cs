@@ -31,8 +31,6 @@ namespace Middleware.Controllers
             {
                 return NotFound();
             }
-            return Ok(application);
-        }
 
 
         // POST: api/somiod/applications
