@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Reflection;
+using System.Runtime.Remoting.Messaging;
 using System.Web.Http;
 using Middleware.Handler;
 using Middleware.Models;
@@ -21,19 +22,35 @@ namespace Middleware.Controllers
         [Route("api/somiod")]
         public IHttpActionResult GetAllApplications()
         {
-            List<Application> objs;
-            var formatter = new XmlMediaTypeFormatter();
+            //Verifica se existe o header 
+            if (!Request.Headers.Contains("somiod-discover"))
+            {
+                return BadRequest();
+            }
 
+            var discoverHeaderValue = Request.Headers.GetValues("somiod-discover")?.FirstOrDefault();
+
+           //Verifica o header do pedido
+            if (string.IsNullOrEmpty(discoverHeaderValue) || !discoverHeaderValue.Equals("application", StringComparison.OrdinalIgnoreCase))
+            {
+          
+                return Unauthorized();
+            }
+
+            //Verificar parametro discovery : application
+            List<Application> apps;
+       
             try
             {
-                objs = AppHandler.GetAllApplications();
+                apps = AppHandler.GetAllApplications();
             }
             catch (System.Exception)
             {
                 return BadRequest();
             }
 
-            return Content(HttpStatusCode.OK, objs, Configuration.Formatters.XmlFormatter);
+            return Content(HttpStatusCode.OK, apps, Configuration.Formatters.XmlFormatter);
+            //return Ok(apps);
         }
 
         // GET: api/Somiod/5
@@ -41,6 +58,8 @@ namespace Middleware.Controllers
         [HttpGet]
         public IHttpActionResult GetApplication(string application_name)
         {
+   
+
             Application app;
             try
             {
@@ -54,7 +73,8 @@ namespace Middleware.Controllers
             {
                 return NotFound();    
             }
-           
+
+            //return Ok(app);
             return Content(HttpStatusCode.OK, app, Configuration.Formatters.XmlFormatter);
         }
 
@@ -83,9 +103,28 @@ namespace Middleware.Controllers
         }
 
         // PUT: api/Somiod/5
-        public IHttpActionResult Put(int id, [FromBody]string value)
+        [Route("api/somiod/{application_name}")]
+        [HttpPut]
+        public IHttpActionResult PutApplication(string application_name, [FromBody] Application newApplication)
         {
-            return Ok();
+          
+            if (newApplication == null || newApplication.Res_type != "application")
+            {
+                return BadRequest();
+            }
+
+            Application app;
+
+            try
+            {
+                app = AppHandler.UpdateToDatabase(application_name,newApplication);
+            }
+            catch (System.Exception)
+            {
+                return BadRequest();
+            }
+
+            return Content(HttpStatusCode.OK, app, Configuration.Formatters.XmlFormatter);
         }
 
         // DELETE: api/Somiod/5

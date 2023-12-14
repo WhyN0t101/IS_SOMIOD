@@ -100,13 +100,12 @@ namespace Middleware.Handler
             {
                 try
                 {
-                    // Check if the application already exists
+
                     if (GetApplicationFromDatabase(application.Name) != null)
                     {
                         throw new Exception("There is already an existing application named " + application.Name + " in the database.");
                     }
 
-                    // Insert the new application into the database
                     string queryString = "INSERT INTO Application VALUES (@name, @creation_dt)";
                     string newApplicationName = application.Name.Replace(" ", "_");
 
@@ -124,14 +123,13 @@ namespace Middleware.Handler
                         }
                     }
 
-                    // Retrieve the inserted application
                     Application newApp = GetApplicationFromDatabase(newApplicationName);
                     newApp.Res_type = "application";
                     return newApp;
                 }
                 catch (Exception ex)
                 {
-                  
+
                     throw ex;
                 }
                 finally
@@ -148,13 +146,11 @@ namespace Middleware.Handler
             {
                 try
                 {
-                    // Check if the application already exists
                     if (GetApplicationFromDatabase(currentName) == null)
                     {
                         throw new Exception("Application with the current name does not exist.");
                     }
 
-                    // Update the application in the database
                     string queryString = "UPDATE Application SET Name = @newName WHERE Name = @currentName";
                     SqlCommand command = new SqlCommand(queryString, connection);
                     string newApplicationName = newApplication.Name.Replace(" ", "_");
@@ -165,14 +161,54 @@ namespace Middleware.Handler
                     connection.Open();
                     command.ExecuteNonQuery();
 
-                    // Retrieve the updated application
                     Application updatedApp = GetApplicationFromDatabase(newApplicationName);
                     updatedApp.Res_type = "application";
                     return updatedApp;
                 }
                 catch (Exception ex)
                 {
-                 
+
+                    throw ex;
+                }
+                finally
+                {
+                    if (connection.State == ConnectionState.Open)
+                        connection.Close();
+                }
+            }
+        }
+        public static void DeleteFromDatabase(string name)
+        {
+            Application app = GetApplicationFromDatabase(name);
+            if (app == null)
+            {
+                throw new Exception("Application with the current name does not exist.");
+            }
+            /*  List<Container> containers = (List<Container>)Container.FindAllByParentIDInDatabase(app.Id);
+                foreach (Container container in containers)
+                {
+                    Container.DeleteFromDatabase(name, containers.Name);
+                }
+            */
+
+            using (SqlConnection connection = new SqlConnection(connStr))
+            {
+                try
+                {
+
+                    string queryString = "DELETE Application WHERE Name = @Name";
+                    SqlCommand command = new SqlCommand(queryString, connection);
+
+
+                    // Add the parameters for the object's name 
+                    command.Parameters.AddWithValue("@name", app.Name);
+
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+
                     throw ex;
                 }
                 finally
