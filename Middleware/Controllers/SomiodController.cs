@@ -5,6 +5,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
+using System.Reflection;
+using System.Runtime.Remoting.Messaging;
 using System.Web.Http;
 using Middleware.Handler;
 using Middleware.Models;
@@ -18,53 +20,72 @@ namespace Middleware.Controllers
 
         //GET: api/somiod
         [Route("api/somiod")]
-        public HttpResponseMessage GetAllApplications()
+        public IHttpActionResult GetAllApplications()
         {
-            List<Application> objs;
-            var formatter = new XmlMediaTypeFormatter();
+            //Verifica se existe o header 
+            if (!Request.Headers.Contains("somiod-discover"))
+            {
+                return BadRequest();
+            }
 
+            var discoverHeaderValue = Request.Headers.GetValues("somiod-discover")?.FirstOrDefault();
+
+           //Verifica o header do pedido
+            if (string.IsNullOrEmpty(discoverHeaderValue) || !discoverHeaderValue.Equals("application", StringComparison.OrdinalIgnoreCase))
+            {
+          
+                return Unauthorized();
+            }
+
+            //Verificar parametro discovery : application
+            List<Application> apps;
+       
             try
             {
-                objs = AppHandler.GetAllAppications();
+                apps = AppHandler.GetAllApplications();
             }
             catch (System.Exception)
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest, new Application(), formatter);
+                return BadRequest();
             }
 
-            return Request.CreateResponse(HttpStatusCode.OK, objs, formatter);
+            return Content(HttpStatusCode.OK, apps, Configuration.Formatters.XmlFormatter);
+            //return Ok(apps);
         }
 
         // GET: api/Somiod/5
         [Route("api/somiod/{application_name}")]
         [HttpGet]
-        public HttpResponseMessage GetApplication(string application_name)
+        public IHttpActionResult GetApplication(string application_name)
         {
+   
+
             Application app;
-            var formatter = new XmlMediaTypeFormatter();
             try
             {
                 app = AppHandler.GetApplicationFromDatabase(application_name);
             }
             catch(System.Exception)
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest, new Application(),formatter);
+                return BadRequest();
             }
             if(app == null)
             {
-                return Request.CreateResponse(HttpStatusCode.NotFound,new Application(), formatter);    
+                return NotFound();    
             }
-            return Request.CreateResponse(HttpStatusCode.OK,app, formatter);
+
+            //return Ok(app);
+            return Content(HttpStatusCode.OK, app, Configuration.Formatters.XmlFormatter);
         }
 
         // POST: api/Somiod
         [Route("api/somiod")]
         [HttpPost]
-        public HttpResponseMessage PostApplication([FromBody] Application newApplication)
+        public IHttpActionResult PostApplication([FromBody] Application newApplication)
         {
             if (newApplication == null || newApplication.Res_type != "application")
             {
-                return Request.CreateResponse<Application>(HttpStatusCode.BadRequest, null);
+                return BadRequest();
             }
 
             Application app;
@@ -75,16 +96,35 @@ namespace Middleware.Controllers
             }
             catch (System.Exception)
             {
-                return Request.CreateResponse<Application>(HttpStatusCode.BadRequest, null);
+                return BadRequest();
             }
 
-            return Request.CreateResponse<Application>(HttpStatusCode.Created, app);
+            return Ok();
         }
 
         // PUT: api/Somiod/5
-        public void Put(int id, [FromBody]string value)
+        [Route("api/somiod/{application_name}")]
+        [HttpPut]
+        public IHttpActionResult PutApplication(string application_name, [FromBody] Application newApplication)
         {
-            Ok();
+          
+            if (newApplication == null || newApplication.Res_type != "application")
+            {
+                return BadRequest();
+            }
+
+            Application app;
+
+            try
+            {
+                app = AppHandler.UpdateToDatabase(application_name,newApplication);
+            }
+            catch (System.Exception)
+            {
+                return BadRequest();
+            }
+
+            return Content(HttpStatusCode.OK, app, Configuration.Formatters.XmlFormatter);
         }
 
         // DELETE: api/Somiod/5

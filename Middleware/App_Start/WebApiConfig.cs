@@ -9,6 +9,7 @@ namespace Middleware
     {
         public static void Register(HttpConfiguration config)
         {
+            config.Formatters.XmlFormatter.UseXmlSerializer= true;
             // Web API configuration and services
 
             // Web API routes

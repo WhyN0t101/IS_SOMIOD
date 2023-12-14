@@ -1,13 +1,8 @@
-﻿using Middleware.Models;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
-using System.Drawing.Printing;
-using System.Linq;
-using System.Web;
-using static System.Net.Mime.MediaTypeNames;
-using Application = Middleware.Models.Application;
+using Middleware.Models;
 
 namespace Middleware.Handler
 {
@@ -15,18 +10,18 @@ namespace Middleware.Handler
     {
         static string connStr = Properties.Settings.Default.connStr;
 
-        public static List<Application> GetAllAppications()
+        public static List<Application> GetAllApplications()
         {
             List<Application> listOfApps = new List<Application>();
             string queryString = "SELECT * FROM Application";
 
-            try
+            using (SqlConnection connection = new SqlConnection(connStr))
             {
-                using (SqlConnection connection = new SqlConnection(connStr))
+                try
                 {
-                    SqlCommand command = new SqlCommand(
-                        queryString, connection);
+                    SqlCommand command = new SqlCommand(queryString, connection);
                     connection.Open();
+
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
                         while (reader.Read())
@@ -42,31 +37,38 @@ namespace Middleware.Handler
                         }
                     }
                 }
-                return listOfApps;
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    if (connection.State == ConnectionState.Open)
+                        connection.Close();
+                }
             }
-            catch (Exception)
-            {
-                throw;
-            }
+
+            return listOfApps;
         }
+
         public static Application GetApplicationFromDatabase(string name)
         {
             string queryString = "SELECT * FROM Application WHERE name = @name";
-            try
+
+            using (SqlConnection connection = new SqlConnection(connStr))
             {
-                using (SqlConnection connection = new SqlConnection(connStr))
+                try
                 {
                     SqlCommand command = new SqlCommand(queryString, connection);
                     command.Parameters.AddWithValue("@name", name);
-
                     connection.Open();
+
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
                         if (reader.Read())
                         {
                             Application app = new Application
                             {
-
                                 Id = (int)reader["id"],
                                 Name = (string)reader["name"],
                                 Creation_dt = (DateTime)reader["creation_dt"],
@@ -78,17 +80,18 @@ namespace Middleware.Handler
                         {
                             return null;
                         }
-
                     }
-
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    if (connection.State == ConnectionState.Open)
+                        connection.Close();
                 }
             }
-            catch (SqlException ex)
-            {
-                throw ex;
-            }
-
-
         }
 
         public static Application PostToDatabase(Application application)
@@ -97,13 +100,12 @@ namespace Middleware.Handler
             {
                 try
                 {
-                    // Check if the application already exists
+
                     if (GetApplicationFromDatabase(application.Name) != null)
                     {
                         throw new Exception("There is already an existing application named " + application.Name + " in the database.");
                     }
 
-                    // Insert the new application into the database
                     string queryString = "INSERT INTO Application VALUES (@name, @creation_dt)";
                     string newApplicationName = application.Name.Replace(" ", "_");
 
@@ -121,19 +123,100 @@ namespace Middleware.Handler
                         }
                     }
 
-                    // Retrieve the inserted application
                     Application newApp = GetApplicationFromDatabase(newApplicationName);
                     newApp.Res_type = "application";
                     return newApp;
                 }
                 catch (Exception ex)
                 {
-                    // Log the error
+
                     throw ex;
+                }
+                finally
+                {
+                    if (connection.State == ConnectionState.Open)
+                        connection.Close();
                 }
             }
         }
 
+        public static Application UpdateToDatabase(string currentName, Application newApplication)
+        {
+            using (SqlConnection connection = new SqlConnection(connStr))
+            {
+                try
+                {
+                    if (GetApplicationFromDatabase(currentName) == null)
+                    {
+                        throw new Exception("Application with the current name does not exist.");
+                    }
 
+                    string queryString = "UPDATE Application SET Name = @newName WHERE Name = @currentName";
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    string newApplicationName = newApplication.Name.Replace(" ", "_");
+
+                    command.Parameters.AddWithValue("@newName", newApplicationName);
+                    command.Parameters.AddWithValue("@currentName", currentName);
+
+                    connection.Open();
+                    command.ExecuteNonQuery();
+
+                    Application updatedApp = GetApplicationFromDatabase(newApplicationName);
+                    updatedApp.Res_type = "application";
+                    return updatedApp;
+                }
+                catch (Exception ex)
+                {
+
+                    throw ex;
+                }
+                finally
+                {
+                    if (connection.State == ConnectionState.Open)
+                        connection.Close();
+                }
+            }
+        }
+        public static void DeleteFromDatabase(string name)
+        {
+            Application app = GetApplicationFromDatabase(name);
+            if (app == null)
+            {
+                throw new Exception("Application with the current name does not exist.");
+            }
+            /*  List<Container> containers = (List<Container>)Container.FindAllByParentIDInDatabase(app.Id);
+                foreach (Container container in containers)
+                {
+                    Container.DeleteFromDatabase(name, containers.Name);
+                }
+            */
+
+            using (SqlConnection connection = new SqlConnection(connStr))
+            {
+                try
+                {
+
+                    string queryString = "DELETE Application WHERE Name = @Name";
+                    SqlCommand command = new SqlCommand(queryString, connection);
+
+
+                    // Add the parameters for the object's name 
+                    command.Parameters.AddWithValue("@name", app.Name);
+
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+
+                    throw ex;
+                }
+                finally
+                {
+                    if (connection.State == ConnectionState.Open)
+                        connection.Close();
+                }
+            }
+        }
     }
 }
