@@ -58,8 +58,6 @@ namespace Middleware.Controllers
         [HttpGet]
         public IHttpActionResult GetApplication(string application_name)
         {
-   
-
             Application app;
             try
             {
@@ -128,9 +126,17 @@ namespace Middleware.Controllers
         }
 
         // DELETE: api/Somiod/5
-        public void Delete(int id)
+        public IHttpActionResult Delete(string application_name)
         {
-            Ok();
+            try
+            {
+                AppHandler.DeleteFromDatabase(application_name);
+            }
+            catch (System.Exception)
+            {
+                return BadRequest();
+            }
+                return Ok();
         }
     }
 }
