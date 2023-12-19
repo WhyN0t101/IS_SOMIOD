@@ -80,6 +80,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\DropTables.sql" />
     <Content Include="App_Data\Database.sql" />
     <Content Include="App_Data\DatabaseIS.mdf" />
     <Content Include="App_Data\DatabaseIS_log.ldf">
@@ -95,6 +96,8 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Handler\AppHandler.cs" />
+    <Compile Include="Handler\ContainerHandler.cs" />
+    <Compile Include="Handler\DataHandler.cs" />
     <Compile Include="Models\Subscription.cs" />
     <Compile Include="Models\Container.cs" />
     <Compile Include="Models\Data.cs" />

@@ -17,6 +17,7 @@ namespace Middleware.Models
         public string Res_type { get; set; }
         [XmlElement("parent")]
         public int Parent { get; set; }
+        public List<Data> Data { get; set; }
 
     }
 }
