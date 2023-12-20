@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Messaging;
 using System.Web.Http;
 using Middleware.Handler;
@@ -138,5 +139,54 @@ namespace Middleware.Controllers
             }
                 return Ok();
         }
+        [Route("api/somiod/{application_name}")]
+        [HttpPost]
+        public HttpResponseMessage PostContainer(string application_name, [FromBody] Container container)
+        {
+            if (container == null || container.Res_type != "container")
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Object is not of 'container' res_type");
+            }
+            Container obj;
+
+            try
+            {
+                obj = ContainerHandler.PostToDatabase(container, application_name);
+            }
+            catch (System.Exception ex)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
+
+            return Request.CreateResponse(HttpStatusCode.Created, obj);
+        }
+       
+        [Route("api/somiod/{application_name}/containers")]
+        [HttpGet]
+        public IHttpActionResult GetAllContainersFromDatabase(string application_name)
+        {
+            IEnumerable<Container> containers;
+            var formatter = new XmlMediaTypeFormatter();
+            try
+            {
+                containers = ContainerHandler.GetAllContainers(application_name);
+            }
+            catch (System.Exception ex)
+            {
+                if (ex.Message == "There is no application named  " + application_name)
+                {
+                    return NotFound();
+                        }
+                return BadRequest();
+            }
+
+            if (containers == null || !containers.Any())
+            {
+                return NotFound();
+            }
+
+            return Content(HttpStatusCode.OK, containers, Configuration.Formatters.XmlFormatter);
+        }
+
     }
 }

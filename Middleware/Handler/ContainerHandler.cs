@@ -32,52 +32,59 @@ namespace Middleware.Handler
                 {
                     // Open the database connection and execute the search command
                     connection.Open();
-                    SqlDataReader reader = command.ExecuteReader();
 
-                    // Check if the object was found
-                    if (reader.Read())
+                    using (SqlDataReader reader = command.ExecuteReader())
                     {
-                        Container container = new Container();
-                        container.Id = Convert.ToInt32(reader["Id"]);
-                        container.Name = reader["Name"].ToString();
-                        container.Res_type = "module";
-                        container.Creation_dt = Convert.ToDateTime(reader["Creation_dt"]);
-                        container.Parent = Convert.ToInt32(reader["Parent"]);
-
-                        List<Data> dataArray = new List<Data>();
-                        reader.Close();
-
-                        // Set up the command to search for the object by name
-                        string searchDataCommand = "SELECT * FROM Data WHERE Parent = @ParentData";
-                        SqlCommand commandData = new SqlCommand(searchDataCommand, connection);
-                        commandData.Parameters.AddWithValue("@ParentData", container.Id);
-
-                        SqlDataReader readerData = commandData.ExecuteReader();
-
                         // Check if the object was found
-                        while (readerData.Read())
+                        if (reader.Read())
                         {
+                            Container container = new Container
+                            {
+                                Id = (int)reader["id"],
+                                Name = (string)reader["name"],
+                                Creation_dt = (DateTime)reader["creation_dt"],
+                                Res_type = "container",
+                                Parent = (int)reader["parent"]
 
-                            Data Dataobj = new Data();
+                            };
 
-                            Dataobj.Id = Convert.ToInt32(readerData["Id"]);
-                            Dataobj.Content = readerData["Content"].ToString();
-                            Dataobj.Res_type = "data";
-                            Dataobj.Creation_dt = Convert.ToDateTime(readerData["Creation_dt"]);
-                            Dataobj.Parent = Convert.ToInt32(readerData["Parent"]);
+                            List<Data> dataArray = new List<Data>();
+                            reader.Close();
 
-                            dataArray.Add(Dataobj);
+                            // Set up the command to search for the object by name
+                            string searchDataCommand = "SELECT * FROM Data WHERE Parent = @ParentData";
+                            SqlCommand commandData = new SqlCommand(searchDataCommand, connection);
+                            commandData.Parameters.AddWithValue("@ParentData", container.Id);
+
+                            SqlDataReader readerData = commandData.ExecuteReader();
+
+                            // Check if the object was found
+                            while (readerData.Read())
+                            {
+
+                                Data DataObj = new Data
+                                {
+                                    Id = (int)reader["id"],
+                                    Content = (string)reader["content"],
+                                    Creation_dt = (DateTime)reader["creation_dt"],
+                                    Res_type = "data",
+                                    Parent = (int)reader["parent"]
+
+                                };
+
+                                dataArray.Add(DataObj);
+                            }
+                            readerData.Close();
+                            container.Data = dataArray;
+                            connection.Close();
+                            return container;
                         }
-                        readerData.Close();
-                        container.Data = dataArray;
-                        connection.Close();
-                        return container;
-                    }
-                    else
-                    {
-                        connection.Close();
-                        return null;
-                        //throw new Exception("Error finding object "+  module_name);
+                        else
+                        {
+                            connection.Close();
+                            return null;
+
+                        }
                     }
                 }
                 catch (SqlException ex)
@@ -96,7 +103,7 @@ namespace Middleware.Handler
                 List<Container> containers = new List<Container>();
                 Application applicationObj = AppHandler.GetApplicationFromDatabase(application_name);
                 if (applicationObj == null)
-                { 
+                {
                     throw new Exception("There is no application named  " + application_name);
                 }
                 string searchCommand = "SELECT * FROM Container WHERE Parent = @Parent";
@@ -112,11 +119,12 @@ namespace Middleware.Handler
                     {
                         Container newContainer = new Container
                         {
-                            Id = Convert.ToInt32(reader["Id"]),
-                            Name = reader["Name"].ToString(),
-                            Res_type = "module",
-                            Creation_dt = Convert.ToDateTime(reader["Creation_dt"]),
-                            Parent = Convert.ToInt32(reader["Parent"])
+                            Id = (int)reader["id"],
+                            Name = (string)reader["name"],
+                            Creation_dt = (DateTime)reader["creation_dt"],
+                            Res_type = "container",
+                            Parent = (int)reader["parent"]
+
                         };
                         containers.Add(newContainer);
                     }
@@ -135,16 +143,17 @@ namespace Middleware.Handler
                         // Check if the object was found
                         while (readerData.Read())
                         {
+                            Data dataObject = new Data
+                            {
+                                Id = (int)reader["id"],
+                                Content = (string)reader["content"],
+                                Creation_dt = (DateTime)reader["creation_dt"],
+                                Res_type = "data",
+                                Parent = (int)reader["parent"]
 
-                            Data objData = new Data();
+                            };
 
-                            objData.Id = Convert.ToInt32(readerData["Id"]);
-                            objData.Content = readerData["Content"].ToString();
-                            objData.Res_type = "data";
-                            objData.Creation_dt = Convert.ToDateTime(readerData["Creation_dt"]);
-                            objData.Parent = Convert.ToInt32(readerData["Parent"]);
-
-                            dataArray.Add(objData);
+                            dataArray.Add(dataObject);
                         }
                         container.Data = dataArray;
 
@@ -183,11 +192,12 @@ namespace Middleware.Handler
                     {
                         Container container = new Container
                         {
-                            Id = Convert.ToInt32(reader["Id"]),
-                            Name = reader["Name"].ToString(),
-                            Res_type = "module",
-                            Creation_dt = Convert.ToDateTime(reader["Creation_dt"]),
-                            Parent = Convert.ToInt32(reader["Parent"])
+                            Id = (int)reader["id"],
+                            Name = (string)reader["name"],
+                            Creation_dt = (DateTime)reader["creation_dt"],
+                            Res_type = "data",
+                            Parent = (int)reader["parent"]
+
                         };
                         containers.Add(container);
                     }
@@ -207,15 +217,17 @@ namespace Middleware.Handler
                         while (readerData.Read())
                         {
 
-                            Data objData = new Data();
+                            Data DataObj = new Data
+                            {
+                                Id = (int)reader["id"],
+                                Content = (string)reader["content"],
+                                Creation_dt = (DateTime)reader["creation_dt"],
+                                Res_type = "data",
+                                Parent = (int)reader["parent"]
 
-                            objData.Id = Convert.ToInt32(readerData["Id"]);
-                            objData.Content = readerData["Content"].ToString();
-                            objData.Res_type = "data";
-                            objData.Creation_dt = Convert.ToDateTime(readerData["Creation_dt"]);
-                            objData.Parent = Convert.ToInt32(readerData["Parent"]);
+                            };
 
-                            dataArray.Add(objData);
+                            dataArray.Add(DataObj);
                         }
                         container.Data = dataArray;
 
@@ -251,7 +263,7 @@ namespace Middleware.Handler
 
 
                 // Set up the command to insert the object into the database
-                string insertCommand = "INSERT INTO Containers VALUES (@name, @date, @parent)";
+                string insertCommand = "INSERT INTO Container VALUES (@name, @date, @parent)";
                 SqlCommand command = new SqlCommand(insertCommand, connection);
 
                 command.Parameters.AddWithValue("@name", newContainerName);
@@ -287,32 +299,32 @@ namespace Middleware.Handler
         }
         public static Container PutToDatabase(string application_name, string container_name, Container updateContainer)
         {
-            Container obj = FindObjectInDatabase(application_name, module_name);
+            Container obj = GetContainerInDatabase(application_name, container_name);
             if (obj == null)
             {
                 throw new Exception("Null Object");
             }
 
-            Application applicationObj = ApplicationHandler.FindObjectInDatabase(application_name);
+            Application applicationObj = AppHandler.GetApplicationFromDatabase(application_name);
             if (applicationObj == null)
             {
                 throw new Exception("There is no application named  " + application_name);
             }
 
-            string newModuleName = updatedModule.Name;
+            string newContainerName = updateContainer.Name;
 
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 // Set up the command to insert the object into the database
-                string insertCommand = "UPDATE Modules SET Name = @newName WHERE Name = @currentName AND Parent = @Parent";
+                string insertCommand = "UPDATE Container SET Name = @newName WHERE Name = @currentName AND Parent = @Parent";
                 SqlCommand command = new SqlCommand(insertCommand, connection);
 
                 // Replace any spaces to "_"
-                newModuleName = newModuleName.Replace(" ", "_");
+                newContainerName = newContainerName.Replace(" ", "_");
 
                 // Add the parameters for the object's name and value
-                command.Parameters.AddWithValue("@newName", newModuleName);
-                command.Parameters.AddWithValue("@currentName", module_name);
+                command.Parameters.AddWithValue("@newName", newContainerName);
+                command.Parameters.AddWithValue("@currentName", container_name);
                 command.Parameters.AddWithValue("@Parent", applicationObj.Id);
 
                 try
@@ -326,9 +338,10 @@ namespace Middleware.Handler
                 }
             }
 
-            Module updatedObj = FindObjectInDatabase(application_name, newModuleName);
-            updatedObj.Res_type = "module";
-            return updatedObj;
+             Container updatedObj = GetContainerInDatabase(application_name, newContainerName);
+             updatedObj.Res_type = "container";
+             return updatedObj;
+           
         }
 
     }

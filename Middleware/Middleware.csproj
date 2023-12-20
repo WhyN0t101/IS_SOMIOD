@@ -80,12 +80,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_Data\DropTables.sql" />
-    <Content Include="App_Data\Database.sql" />
     <Content Include="App_Data\DatabaseIS.mdf" />
     <Content Include="App_Data\DatabaseIS_log.ldf">
       <DependentUpon>DatabaseIS.mdf</DependentUpon>
     </Content>
+    <Content Include="App_Data\DropTables.sql" />
+    <Content Include="App_Data\Database.sql" />
     <Content Include="Global.asax" />
     <Content Include="Web.config" />
   </ItemGroup>
@@ -98,6 +98,7 @@
     <Compile Include="Handler\AppHandler.cs" />
     <Compile Include="Handler\ContainerHandler.cs" />
     <Compile Include="Handler\DataHandler.cs" />
+    <Compile Include="Handler\SubHandler.cs" />
     <Compile Include="Models\Subscription.cs" />
     <Compile Include="Models\Container.cs" />
     <Compile Include="Models\Data.cs" />
