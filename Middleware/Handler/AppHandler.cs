@@ -182,14 +182,14 @@ namespace Middleware.Handler
             Application app = GetApplicationFromDatabase(name);
             if (app == null)
             {
-                throw new Exception("Application with the current name does not exist.");
+                throw new Exception("Application does not exist.");
             }
-            /*  List<Container> containers = (List<Container>)Container.FindAllByParentIDInDatabase(app.Id);
-                foreach (Container container in containers)
-                {
-                    Container.DeleteFromDatabase(name, containers.Name);
-                }
-            */
+
+            List<Container> containers = (List<Container>)ContainerHandler.GetAllContainersByParentIDInDatabase(app.Id);
+            foreach (Container container in containers)
+            {
+                ContainerHandler.DeleteFromDatabase(name, container.Name);
+            }
 
             using (SqlConnection connection = new SqlConnection(connStr))
             {

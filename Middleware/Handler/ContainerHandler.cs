@@ -343,6 +343,46 @@ namespace Middleware.Handler
              return updatedObj;
            
         }
+        public static void DeleteFromDatabase(string application_name, string container_name)
+        {
+            Container container = GetContainerInDatabase(application_name, container_name);
+
+            if (container == null)
+            {
+                throw new Exception("Container with name " + container_name + " was not found!");
+            }
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+
+                string deleteData = "DELETE FROM Data WHERE Parent = @DataParentId";
+                SqlCommand commandData = new SqlCommand(deleteData, connection);
+                commandData.Parameters.AddWithValue("@DataParentId", container.Id);
+
+                string deleteSub = "DELETE FROM Subscription WHERE Parent = @SubsParentId";
+                SqlCommand commandSub = new SqlCommand(deleteSub, connection);
+                commandSub.Parameters.AddWithValue("@SubsParentId", container.Id);
+
+                // Set up the command to delete object from the database
+                string insertCommand = "DELETE FROM Container WHERE Name = @name AND Parent = @Parent";
+                SqlCommand command = new SqlCommand(insertCommand, connection);
+
+                command.Parameters.AddWithValue("@name", container.Name);
+                command.Parameters.AddWithValue("@Parent", container.Parent);
+
+                try
+                {
+                    connection.Open();
+                    commandData.ExecuteNonQuery();
+                    commandSub.ExecuteNonQuery();
+                    command.ExecuteNonQuery();
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+            }
+        }
 
     }
 }

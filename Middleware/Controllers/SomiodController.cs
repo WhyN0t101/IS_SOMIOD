@@ -126,8 +126,9 @@ namespace Middleware.Controllers
             return Content(HttpStatusCode.OK, app, Configuration.Formatters.XmlFormatter);
         }
 
-        // DELETE: api/Somiod/5
-        public IHttpActionResult Delete(string application_name)
+        [Route("api/somiod/{application_name}")]
+        [HttpDelete]
+        public IHttpActionResult DeleteApplication(string application_name)
         {
             try
             {
@@ -137,15 +138,17 @@ namespace Middleware.Controllers
             {
                 return BadRequest();
             }
-                return Ok();
+
+            return Ok();
         }
+
         [Route("api/somiod/{application_name}")]
         [HttpPost]
-        public HttpResponseMessage PostContainer(string application_name, [FromBody] Container container)
+        public IHttpActionResult PostContainer(string application_name, [FromBody] Container container)
         {
             if (container == null || container.Res_type != "container")
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest, "Object is not of 'container' res_type");
+                return BadRequest("Not type container");
             }
             Container obj;
 
@@ -155,16 +158,31 @@ namespace Middleware.Controllers
             }
             catch (System.Exception ex)
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
+                return BadRequest();
             }
 
-            return Request.CreateResponse(HttpStatusCode.Created, obj);
+            return Ok();
         }
        
         [Route("api/somiod/{application_name}/containers")]
         [HttpGet]
         public IHttpActionResult GetAllContainersFromDatabase(string application_name)
         {
+            //Verifica se existe o header 
+            if (!Request.Headers.Contains("somiod-discover"))
+            {
+                return BadRequest();
+            }
+
+            var discoverHeaderValue = Request.Headers.GetValues("somiod-discover")?.FirstOrDefault();
+
+            //Verifica o header do pedido
+            if (string.IsNullOrEmpty(discoverHeaderValue) || !discoverHeaderValue.Equals("container", StringComparison.OrdinalIgnoreCase))
+            {
+
+                return Unauthorized();
+            }
+
             IEnumerable<Container> containers;
             var formatter = new XmlMediaTypeFormatter();
             try
@@ -188,5 +206,7 @@ namespace Middleware.Controllers
             return Content(HttpStatusCode.OK, containers, Configuration.Formatters.XmlFormatter);
         }
 
+
+        
     }
 }
