@@ -96,31 +96,28 @@ namespace Middleware.Handler
 
         public static Application PostToDatabase(Application application)
         {
+            if (GetApplicationFromDatabase(application.Name) != null)
+            {
+                throw new Exception("There is already an existing application named " + application.Name + " in the database.");
+            }
+
             using (SqlConnection connection = new SqlConnection(connStr))
             {
+                string queryString = "INSERT INTO Application VALUES (@name, @creation_dt)";
+                string newApplicationName = application.Name.Replace(" ", "_");
+
+                SqlCommand command = new SqlCommand(queryString, connection);
+
+                command.Parameters.AddWithValue("@name", newApplicationName);
+                command.Parameters.AddWithValue("@creation_dt", DateTime.Now);
                 try
                 {
+                    connection.Open();
+                    int rowsAffected = command.ExecuteNonQuery();
 
-                    if (GetApplicationFromDatabase(application.Name) != null)
+                    if (rowsAffected == 0)
                     {
-                        throw new Exception("There is already an existing application named " + application.Name + " in the database.");
-                    }
-
-                    string queryString = "INSERT INTO Application VALUES (@name, @creation_dt)";
-                    string newApplicationName = application.Name.Replace(" ", "_");
-
-                    using (SqlCommand command = new SqlCommand(queryString, connection))
-                    {
-                        command.Parameters.AddWithValue("@name", newApplicationName);
-                        command.Parameters.AddWithValue("@creation_dt", DateTime.Now);
-
-                        connection.Open();
-                        int rowsAffected = command.ExecuteNonQuery();
-
-                        if (rowsAffected == 0)
-                        {
-                            throw new Exception("No rows were affected by the insert operation.");
-                        }
+                        throw new Exception("No rows were affected by the insert operation.");
                     }
 
                     Application newApp = GetApplicationFromDatabase(newApplicationName);
@@ -142,22 +139,21 @@ namespace Middleware.Handler
 
         public static Application UpdateToDatabase(string currentName, Application newApplication)
         {
+            if (GetApplicationFromDatabase(currentName) == null)
+            {
+                throw new Exception("Application with the current name does not exist.");
+            }
+
             using (SqlConnection connection = new SqlConnection(connStr))
             {
+                string queryString = "UPDATE Application SET Name = @newName WHERE Name = @currentName";
+                SqlCommand command = new SqlCommand(queryString, connection);
+                string newApplicationName = newApplication.Name.Replace(" ", "_");
+
+                command.Parameters.AddWithValue("@newName", newApplicationName);
+                command.Parameters.AddWithValue("@currentName", currentName);
                 try
                 {
-                    if (GetApplicationFromDatabase(currentName) == null)
-                    {
-                        throw new Exception("Application with the current name does not exist.");
-                    }
-
-                    string queryString = "UPDATE Application SET Name = @newName WHERE Name = @currentName";
-                    SqlCommand command = new SqlCommand(queryString, connection);
-                    string newApplicationName = newApplication.Name.Replace(" ", "_");
-
-                    command.Parameters.AddWithValue("@newName", newApplicationName);
-                    command.Parameters.AddWithValue("@currentName", currentName);
-
                     connection.Open();
                     command.ExecuteNonQuery();
 
@@ -167,7 +163,6 @@ namespace Middleware.Handler
                 }
                 catch (Exception ex)
                 {
-
                     throw ex;
                 }
                 finally
@@ -198,7 +193,6 @@ namespace Middleware.Handler
 
                     string queryString = "DELETE Application WHERE Name = @Name";
                     SqlCommand command = new SqlCommand(queryString, connection);
-
 
                     // Add the parameters for the object's name 
                     command.Parameters.AddWithValue("@name", app.Name);
