@@ -102,6 +102,7 @@ namespace Middleware.Handler
             {
                 List<Container> containers = new List<Container>();
                 Application applicationObj = AppHandler.GetApplicationFromDatabase(application_name);
+
                 if (applicationObj == null)
                 {
                     throw new Exception("There is no application named  " + application_name);
@@ -306,6 +307,7 @@ namespace Middleware.Handler
             }
 
             Application applicationObj = AppHandler.GetApplicationFromDatabase(application_name);
+
             if (applicationObj == null)
             {
                 throw new Exception("There is no application named  " + application_name);

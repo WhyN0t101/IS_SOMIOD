@@ -9,8 +9,11 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Messaging;
 using System.Web.Http;
+using System.Xml.Linq;
 using Middleware.Handler;
 using Middleware.Models;
+using Newtonsoft.Json.Linq;
+
 namespace Middleware.Controllers
 {
     public class SomiodController : ApiController
@@ -206,7 +209,55 @@ namespace Middleware.Controllers
             return Content(HttpStatusCode.OK, containers, Configuration.Formatters.XmlFormatter);
         }
 
+        [Route("api/somiod/{application_name}/{module_name}")]
+        [HttpPost]
+        public HttpResponseMessage PostDataOrSubscription(string application_name, string module_name, [FromBody] Data xmlData)
+        {
+            //--Data
+            if (xmlData.Res_type.Equals("res_type"))
+            {
+             
 
-        
+                int idInserted = -1;
+
+                try
+                {
+                    idInserted = DataHandler.SaveToDatabaseData(xmlData, application_name, module_name);
+                    // DataHandler.PublishDataToMosquitto(application_name, module_name, data, "creation");
+                }
+                catch (System.Exception ex)
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
+                }
+
+                return Request.CreateResponse(HttpStatusCode.Created, "Inserted a row with id " + idInserted);
+            }
+            return null;
+           /* //--Subscription
+            else if (newObj["res_type"].ToString().Equals("subscription"))
+            {
+                Subscription subscription = newObj.ToObject<Subscription>();
+
+                int rowsInserted;
+
+                try
+                {
+                    rowsInserted = SubscriptionHandler.SaveToDatabase(application_name, module_name, subscription);
+                }
+                catch (System.Exception ex)
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
+                }
+
+                return Request.CreateResponse(HttpStatusCode.Created, "Inserted " + rowsInserted + " row");
+            }
+            //--Neither of them
+            else
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Object is not of 'data' or 'subscription' res_type, is " + newObj["res_type"]);
+            }*/
+        }
+
+
     }
 }
