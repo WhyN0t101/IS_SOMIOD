@@ -18,7 +18,6 @@ namespace Middleware.Controllers
 {
     public class SomiodController : ApiController
     {
-    
 
         private readonly string connStr = Properties.Settings.Default.connStr;
 
@@ -34,10 +33,10 @@ namespace Middleware.Controllers
 
             var discoverHeaderValue = Request.Headers.GetValues("somiod-discover")?.FirstOrDefault();
 
-           //Verify if the header is corresponding to application
+            //Verify if the header is corresponding to application
             if (string.IsNullOrEmpty(discoverHeaderValue) || !discoverHeaderValue.Equals("application", StringComparison.OrdinalIgnoreCase))
             {
-          
+
                 return Unauthorized();
             }
             //Creates list of Apps
@@ -69,17 +68,17 @@ namespace Middleware.Controllers
             {
                 app = AppHandler.GetApplicationFromDatabase(application_name);
             }
-            catch(System.Exception)
+            catch (System.Exception)
             {
                 return BadRequest();
             }
-            if(app == null)
+            if (app == null)
             {
-                return NotFound();    
+                return NotFound();
             }
 
             return Ok(app);
-          
+
         }
 
         // POST: api/Somiod
@@ -90,24 +89,22 @@ namespace Middleware.Controllers
             //Checks if the Application is null or if the res_type is application
             if (newApplication == null || newApplication.Res_type != "application")
             {
-                return BadRequest();
+                return BadRequest("New Application is null or not correct res_type");
             }
-
-            Application app;
-
+            //Posts to DB
             try
             {
-                app = AppHandler.PostToDatabase(newApplication);
+                AppHandler.PostToDatabase(newApplication);
             }
             catch (System.Exception)
             {
                 return BadRequest();
             }
 
-            return Ok();
+            return Created(new Uri(Request.RequestUri, newApplication.Name), newApplication);
+
         }
 
-        // PUT: api/Somiod/5
         [Route("api/somiod/{application_name}")]
         [HttpPut]
         public IHttpActionResult PutApplication(string application_name, [FromBody] Application newApplication)
@@ -115,14 +112,14 @@ namespace Middleware.Controllers
             //Checks if the Application is null or if the res_type is application
             if (newApplication == null || newApplication.Res_type != "application")
             {
-                return BadRequest();
+                return BadRequest("New Application is null or not correct res_type");
             }
-
+            //Instances an App
             Application app;
-
+            //Updates the application
             try
             {
-                app = AppHandler.UpdateToDatabase(application_name,newApplication);
+                app = AppHandler.UpdateToDatabase(application_name, newApplication);
             }
             catch (System.Exception)
             {
@@ -136,48 +133,49 @@ namespace Middleware.Controllers
         [HttpDelete]
         public IHttpActionResult DeleteApplication(string application_name)
         {
+            //Deletes Application if it exists
             try
             {
                 AppHandler.DeleteFromDatabase(application_name);
             }
             catch (System.Exception)
             {
-                return BadRequest();
+                return BadRequest("No application named " + application_name);
             }
 
-            return Ok();
+            return Ok("Deleted");
         }
 
         [Route("api/somiod/{application_name}")]
         [HttpPost]
         public IHttpActionResult PostContainer(string application_name, [FromBody] Container container)
         {
+            //Checks if container is null or if res_type is container
             if (container == null || container.Res_type != "container")
             {
-                return BadRequest("Not type container");
+                return BadRequest("Not type container or null");
             }
-            Container obj;
-
+            //Posts do DB the container
             try
             {
-                obj = ContainerHandler.PostToDatabase(container, application_name);
+                ContainerHandler.PostToDatabase(container, application_name);
             }
             catch (System.Exception ex)
             {
-                return BadRequest();
+                return BadRequest("Failed to create container");
             }
+            return Created(new Uri(Request.RequestUri, application_name), container);
 
-            return Ok();
         }
-       
+
         [Route("api/somiod/{application_name}/containers")]
         [HttpGet]
-        public IHttpActionResult GetAllContainersFromDatabase(string application_name)
+        public IHttpActionResult GetAllContainers(string application_name)
         {
             //Verify if it has a header
             if (!Request.Headers.Contains("somiod-discover"))
             {
-                return BadRequest();
+                return BadRequest("Does not have container in header");
             }
 
             var discoverHeaderValue = Request.Headers.GetValues("somiod-discover")?.FirstOrDefault();
@@ -190,7 +188,7 @@ namespace Middleware.Controllers
             }
 
             IEnumerable<Container> containers;
-           
+
             try
             {
                 containers = ContainerHandler.GetAllContainers(application_name);
@@ -200,8 +198,9 @@ namespace Middleware.Controllers
                 if (ex.Message == "There is no application named  " + application_name)
                 {
                     return NotFound();
-                        }
-                return BadRequest();
+                }
+
+                return BadRequest("Couldnt not retrieve containers");
             }
 
             if (containers == null || !containers.Any())
@@ -214,7 +213,7 @@ namespace Middleware.Controllers
 
         [Route("api/somiod/{application_name}/{container_name}")]
         [HttpDelete]
-        public IHttpActionResult DeleteContainer(string application_name,string container_name)
+        public IHttpActionResult DeleteContainer(string application_name, string container_name)
         {
             try
             {
@@ -232,10 +231,17 @@ namespace Middleware.Controllers
         [HttpPut]
         public IHttpActionResult PutContainer(string application_name, string container_name, [FromBody] Container newContainer)
         {
+            //Checks if the new container is null and res_type container
             if (newContainer == null || newContainer.Res_type != "container")
             {
-                return BadRequest();
+                return BadRequest("New Application is null or not correct res_type");
             }
+            //Checks if the container exists
+            if (ContainerHandler.GetContainerInDatabase(application_name, container_name) == null)
+            {
+                return NotFound();
+            }
+            //Updates the container
             Container container;
             try
             {
@@ -244,11 +250,12 @@ namespace Middleware.Controllers
             }
             catch (System.Exception ex)
             {
-                return BadRequest();
+                return BadRequest("Faild to update container");
             }
 
             return Ok(container);
 
         }
+
     }
 }
