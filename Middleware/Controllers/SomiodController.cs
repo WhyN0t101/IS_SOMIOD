@@ -20,13 +20,13 @@ namespace Middleware.Controllers
     {
     
 
-        private string connStr = Properties.Settings.Default.connStr;
+        private readonly string connStr = Properties.Settings.Default.connStr;
 
         //GET: api/somiod
         [Route("api/somiod")]
         public IHttpActionResult GetAllApplications()
         {
-            //Verifica se existe o header 
+            //Verify if it has a header
             if (!Request.Headers.Contains("somiod-discover"))
             {
                 return BadRequest();
@@ -34,16 +34,16 @@ namespace Middleware.Controllers
 
             var discoverHeaderValue = Request.Headers.GetValues("somiod-discover")?.FirstOrDefault();
 
-           //Verifica o header do pedido
+           //Verify if the header is corresponding to application
             if (string.IsNullOrEmpty(discoverHeaderValue) || !discoverHeaderValue.Equals("application", StringComparison.OrdinalIgnoreCase))
             {
           
                 return Unauthorized();
             }
-
-            //Verificar parametro discovery : application
+            //Creates list of Apps
             List<Application> apps;
-       
+
+            //Gets all Apps
             try
             {
                 apps = AppHandler.GetAllApplications();
@@ -53,8 +53,7 @@ namespace Middleware.Controllers
                 return BadRequest();
             }
 
-            return Content(HttpStatusCode.OK, apps, Configuration.Formatters.XmlFormatter);
-            //return Ok(apps);
+            return Ok(apps);
         }
 
         // GET: api/Somiod/5
@@ -62,7 +61,10 @@ namespace Middleware.Controllers
         [HttpGet]
         public IHttpActionResult GetApplication(string application_name)
         {
+            //Istances a App
             Application app;
+
+            //Gets the App and returns it
             try
             {
                 app = AppHandler.GetApplicationFromDatabase(application_name);
@@ -76,8 +78,8 @@ namespace Middleware.Controllers
                 return NotFound();    
             }
 
-            //return Ok(app);
-            return Content(HttpStatusCode.OK, app, Configuration.Formatters.XmlFormatter);
+            return Ok(app);
+          
         }
 
         // POST: api/Somiod
@@ -85,6 +87,7 @@ namespace Middleware.Controllers
         [HttpPost]
         public IHttpActionResult PostApplication([FromBody] Application newApplication)
         {
+            //Checks if the Application is null or if the res_type is application
             if (newApplication == null || newApplication.Res_type != "application")
             {
                 return BadRequest();
@@ -109,7 +112,7 @@ namespace Middleware.Controllers
         [HttpPut]
         public IHttpActionResult PutApplication(string application_name, [FromBody] Application newApplication)
         {
-          
+            //Checks if the Application is null or if the res_type is application
             if (newApplication == null || newApplication.Res_type != "application")
             {
                 return BadRequest();
@@ -126,7 +129,7 @@ namespace Middleware.Controllers
                 return BadRequest();
             }
 
-            return Content(HttpStatusCode.OK, app, Configuration.Formatters.XmlFormatter);
+            return Ok(app);
         }
 
         [Route("api/somiod/{application_name}")]
@@ -171,7 +174,7 @@ namespace Middleware.Controllers
         [HttpGet]
         public IHttpActionResult GetAllContainersFromDatabase(string application_name)
         {
-            //Verifica se existe o header 
+            //Verify if it has a header
             if (!Request.Headers.Contains("somiod-discover"))
             {
                 return BadRequest();
@@ -179,7 +182,7 @@ namespace Middleware.Controllers
 
             var discoverHeaderValue = Request.Headers.GetValues("somiod-discover")?.FirstOrDefault();
 
-            //Verifica o header do pedido
+            //Verify if the header is null or has the "container" 
             if (string.IsNullOrEmpty(discoverHeaderValue) || !discoverHeaderValue.Equals("container", StringComparison.OrdinalIgnoreCase))
             {
 
@@ -187,7 +190,7 @@ namespace Middleware.Controllers
             }
 
             IEnumerable<Container> containers;
-            var formatter = new XmlMediaTypeFormatter();
+           
             try
             {
                 containers = ContainerHandler.GetAllContainers(application_name);
@@ -206,58 +209,46 @@ namespace Middleware.Controllers
                 return NotFound();
             }
 
-            return Content(HttpStatusCode.OK, containers, Configuration.Formatters.XmlFormatter);
+            return Ok(containers);
         }
 
-        [Route("api/somiod/{application_name}/{module_name}")]
-        [HttpPost]
-        public HttpResponseMessage PostDataOrSubscription(string application_name, string module_name, [FromBody] Data xmlData)
+        [Route("api/somiod/{application_name}/{container_name}")]
+        [HttpDelete]
+        public IHttpActionResult DeleteContainer(string application_name,string container_name)
         {
-            //--Data
-            if (xmlData.Res_type.Equals("res_type"))
+            try
             {
-             
-
-                int idInserted = -1;
-
-                try
-                {
-                    idInserted = DataHandler.SaveToDatabaseData(xmlData, application_name, module_name);
-                    // DataHandler.PublishDataToMosquitto(application_name, module_name, data, "creation");
-                }
-                catch (System.Exception ex)
-                {
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
-                }
-
-                return Request.CreateResponse(HttpStatusCode.Created, "Inserted a row with id " + idInserted);
+                ContainerHandler.DeleteFromDatabase(application_name, container_name);
             }
-            return null;
-           /* //--Subscription
-            else if (newObj["res_type"].ToString().Equals("subscription"))
+            catch (System.Exception ex)
             {
-                Subscription subscription = newObj.ToObject<Subscription>();
-
-                int rowsInserted;
-
-                try
-                {
-                    rowsInserted = SubscriptionHandler.SaveToDatabase(application_name, module_name, subscription);
-                }
-                catch (System.Exception ex)
-                {
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
-                }
-
-                return Request.CreateResponse(HttpStatusCode.Created, "Inserted " + rowsInserted + " row");
+                return BadRequest(ex.Message);
             }
-            //--Neither of them
-            else
-            {
-                return Request.CreateResponse(HttpStatusCode.BadRequest, "Object is not of 'data' or 'subscription' res_type, is " + newObj["res_type"]);
-            }*/
+
+            return Ok();
         }
 
+        [Route("api/somiod/{application_name}/{container_name}")]
+        [HttpPut]
+        public IHttpActionResult PutContainer(string application_name, string container_name, [FromBody] Container newContainer)
+        {
+            if (newContainer == null || newContainer.Res_type != "container")
+            {
+                return BadRequest();
+            }
+            Container container;
+            try
+            {
+                container = ContainerHandler.PutToDatabase(application_name, container_name, newContainer);
 
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest();
+            }
+
+            return Ok(container);
+
+        }
     }
 }

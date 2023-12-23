@@ -23,9 +23,9 @@ namespace Middleware.Handler
             using (SqlConnection connection = new SqlConnection(connStr))
             {
                 string insertCmd = "INSERT INTO Data VALUES (@content, @date, @parent)";
-                SqlCommand cmd = new SqlCommand(insertCmd, connection);
-                cmd.Parameters.AddWithValue("@content", doc.SelectSingleNode("//content").InnerText);
-                cmd.Parameters.AddWithValue("@date", DateTime.Now);
+                SqlCommand command = new SqlCommand(insertCmd, connection);
+                command.Parameters.AddWithValue("@content", doc.SelectSingleNode("//content").InnerText);
+                command.Parameters.AddWithValue("@date", DateTime.Now);
 
                 Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
 
@@ -34,20 +34,20 @@ namespace Middleware.Handler
                     throw new Exception("No container named " + container_name + " in application " + application_name);
                 }
 
-                cmd.Parameters.AddWithValue("@parent", container.Id);
+                command.Parameters.AddWithValue("@parent", container.Id);
 
             
                 try
                 {
                     // Open the database connection and execute the insert command
                     connection.Open();
-                    int rowsInserted = cmd.ExecuteNonQuery();
+                    int rowsInserted = command.ExecuteNonQuery();
                     if (rowsInserted != 1)
                     {
                         throw new Exception("Error inserting object into database");
                     }
 
-                    Data newData = FindLastObjectInsertedInDatabaseByModuleId(container.Id);
+                    Data newData = GetLastInsertedInDatabaseByContainer(container.Id);
                     if (newData == null)
                     {
                         throw new Exception("Can't find newly created data record in the database");
@@ -65,7 +65,7 @@ namespace Middleware.Handler
             }
             return idInserted;
         }
-        public static Data FindLastObjectInsertedInDatabaseByModuleId(int container_id)
+        public static Data GetLastInsertedInDatabaseByContainer(int container_id)
         {
             using (SqlConnection connection = new SqlConnection(connStr))
             {

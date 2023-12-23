@@ -14,12 +14,13 @@ namespace Middleware.Handler
         static string connectionString = Properties.Settings.Default.connStr;
         public static Container GetContainerInDatabase(string application_name, string container_name)
         {
+            // Get Application from DB 
             Application applicationObj = AppHandler.GetApplicationFromDatabase(application_name);
             if (applicationObj == null)
             {
                 throw new Exception("There is no application named " + application_name);
             }
-
+            // Instance SQL Connection
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 // Set up the command to search for the object by name
