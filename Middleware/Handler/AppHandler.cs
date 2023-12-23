@@ -87,6 +87,7 @@ namespace Middleware.Handler
 
         public static Application PostToDatabase(Application application)
         {
+            //Replace empty spaces
             string newApplicationName = application.Name.Replace(" ", "_");
 
             if (GetApplicationFromDatabase(newApplicationName) != null)
