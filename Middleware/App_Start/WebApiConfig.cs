@@ -10,7 +10,7 @@ namespace Middleware
     {
         public static void Register(HttpConfiguration config)
         {
-            // Remove the JSON formatter
+            // Remove the JSON formatter remove if needed this allow to return XMl even without Accept: application/xml
             config.Formatters.Remove(config.Formatters.JsonFormatter);
             // Set the default response type to XML
             config.Formatters.XmlFormatter.UseXmlSerializer = true;
