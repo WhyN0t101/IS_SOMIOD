@@ -1,10 +1,6 @@
 ﻿using Middleware.Models;
 using System;
-using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Reflection;
-using System.Web;
 using System.Xml;
 
 namespace Middleware.Handler
@@ -15,7 +11,6 @@ namespace Middleware.Handler
       
         public static int SaveToDatabaseData(Data data, string application_name, string container_name)
         {
-   
             int idInserted = -1;
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(data.Content);
@@ -24,47 +19,53 @@ namespace Middleware.Handler
             {
                 string insertCmd = "INSERT INTO Data VALUES (@content, @date, @parent)";
                 SqlCommand command = new SqlCommand(insertCmd, connection);
-                command.Parameters.AddWithValue("@content", doc.SelectSingleNode("//content").InnerText);
+
+                // Extracted content from XML
+                string content = doc.SelectSingleNode("//content").InnerText;
+
+                // Add parameters for the object's properties
+                command.Parameters.AddWithValue("@content", content);
                 command.Parameters.AddWithValue("@date", DateTime.Now);
 
                 Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
 
                 if (container == null)
                 {
-                    throw new Exception("No container named " + container_name + " in application " + application_name);
+                    throw new Exception($"No container named {container_name} in application {application_name}");
                 }
 
                 command.Parameters.AddWithValue("@parent", container.Id);
 
-            
                 try
                 {
                     // Open the database connection and execute the insert command
                     connection.Open();
                     int rowsInserted = command.ExecuteNonQuery();
+
                     if (rowsInserted != 1)
                     {
-                        throw new Exception("Error inserting object into database");
+                        throw new Exception("Error inserting object into the database");
                     }
 
+                    // Get the last inserted data record
                     Data newData = GetLastInsertedInDatabaseByContainer(container.Id);
+
                     if (newData == null)
                     {
                         throw new Exception("Can't find newly created data record in the database");
                     }
                     idInserted = newData.Id;
-
                 }
                 catch (SqlException ex)
                 {
                     // Handle any errors that may have occurred
-                    Console.WriteLine("Error inserting object into database: " + ex.Message);
+                    Console.WriteLine($"Error inserting object into the database: {ex.Message}");
                     throw new Exception(ex.Message);
-
                 }
             }
             return idInserted;
         }
+
         public static Data GetLastInsertedInDatabaseByContainer(int container_id)
         {
             using (SqlConnection connection = new SqlConnection(connStr))
@@ -105,18 +106,20 @@ namespace Middleware.Handler
                 }
             }
         }
+
           public static Data GetDataFromDatabase(string application_name, string container_name, int data_id)
         {
             using (SqlConnection connection = new SqlConnection(connStr))
             {
                 // Find Application
                 Application application = AppHandler.GetApplicationFromDatabase(application_name);
+
                 if (application == null)
                 {
                     return null;
                 }
 
-                // Find Module 
+                // Find Container 
                 Container container = ContainerHandler.GetContainerInDatabase(application.Name, container_name);
 
                 if (container == null)
