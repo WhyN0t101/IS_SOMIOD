@@ -12,18 +12,22 @@ namespace Middleware.Handler
 
         public static List<Application> GetAllApplications()
         {
+            //Creating list of apps and SQL querry
             List<Application> listOfApps = new List<Application>();
             string queryString = "SELECT * FROM Application";
 
+            //Creating connection to DB 
             using (SqlConnection connection = new SqlConnection(connStr))
             using (SqlCommand command = new SqlCommand(queryString, connection))
             {
                 try
                 {
+                    //Opening connection
                     connection.Open();
                     //Instacing reader
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
+                        //While it reades, creates that application and adds it to the list
                         while (reader.Read())
                         {
                             Application app = new Application
@@ -48,19 +52,22 @@ namespace Middleware.Handler
 
         public static Application GetApplicationFromDatabase(string name)
         {
+            //Creating SQL querry string
             string queryString = "SELECT * FROM Application WHERE name = @name";
             //Creating the connection to SQL DB
             using (SqlConnection connection = new SqlConnection(connStr))
             using (SqlCommand command = new SqlCommand(queryString, connection))
             {
+                //Add parameter name
                 command.Parameters.AddWithValue("@name", name);
-
                 try
                 {
+                    //Opening SQL connecting
                     connection.Open();
                     //Instances reader
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
+                        //Start reading the application data and adds it to the 'new' app and returns it
                         if (reader.Read())
                         {
                             Application app = new Application
@@ -98,12 +105,15 @@ namespace Middleware.Handler
             using (SqlConnection connection = new SqlConnection(connStr))
             using (SqlCommand command = new SqlCommand("INSERT INTO Application VALUES (@name, @creation_dt)", connection))
             {
+                //Adds the parameters name, and time
                 command.Parameters.AddWithValue("@name", newApplicationName);
                 command.Parameters.AddWithValue("@creation_dt", DateTime.Now);
 
                 try
                 {
+                    //Opens the connection to the DB
                     connection.Open();
+                    //Checks if rows were affected
                     int rowsAffected = command.ExecuteNonQuery();
                     //If not then the application didnt post
                     if (rowsAffected == 0)
@@ -124,6 +134,9 @@ namespace Middleware.Handler
 
         public static Application UpdateToDatabase(string currentName, Application newApplication)
         {
+
+            string newApplicationName = newApplication.Name.Replace(" ", "_");
+
             if (GetApplicationFromDatabase(currentName) == null)
             {
                 throw new Exception("Application with the current name does not exist.");
@@ -132,13 +145,14 @@ namespace Middleware.Handler
             using (SqlConnection connection = new SqlConnection(connStr))
             using (SqlCommand command = new SqlCommand("UPDATE Application SET Name = @newName WHERE Name = @currentName", connection))
             {
-                string newApplicationName = newApplication.Name.Replace(" ", "_");
 
+                //Adds the parameters in the querry
                 command.Parameters.AddWithValue("@newName", newApplicationName);
                 command.Parameters.AddWithValue("@currentName", currentName);
 
                 try
                 {
+                    //Opens connection and executes the command
                     connection.Open();
                     command.ExecuteNonQuery();
                     //Gets the app from the DB and changes the res_type
@@ -156,6 +170,7 @@ namespace Middleware.Handler
 
         public static void DeleteFromDatabase(string name)
         {
+            //Checks if the application exists
             Application app = GetApplicationFromDatabase(name);
             if (app == null)
             {
@@ -174,16 +189,17 @@ namespace Middleware.Handler
             using (SqlConnection connection = new SqlConnection(connStr))
             using (SqlCommand command = new SqlCommand("DELETE FROM Application WHERE Name = @Name", connection))
             {
+                //adds sql parameters
                 command.Parameters.AddWithValue("@Name", app.Name);
 
                 try
                 {
+                    //Opens connection and executes the querry
                     connection.Open();
                     command.ExecuteNonQuery();
                 }
                 catch (SqlException ex)
                 {
-                    // Log the exception or handle it appropriately
                     throw new ApplicationException("Error deleting application from the database.", ex);
                 }
             }
