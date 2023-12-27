@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+using System.Xml.Linq;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace TestAplication
@@ -27,16 +28,18 @@ namespace TestAplication
         {
             TextBoxListAllApplications.Clear();
             string requestURI = "/api/somiod/";
-            XmlDocument doc = RequestsHandler.getResponseAsXMLDocument(requestURI, client, "applications");
 
-            if (doc == null)
+            // Use XDocument instead of XmlDocument
+            XDocument xDoc = RequestsHandler.getResponseAsXMLDocument(requestURI, client, "applications");
+
+            if (xDoc == null)
             {
                 return;
             }
 
             // Loads the XML document to the RichTextBox
-            TextBoxListAllApplications.Text = doc.InnerXml;
-
+            TextBoxListAllApplications.Text = xDoc.ToString();
         }
+
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.Xml;
+using System.Xml.Linq;
 using RestSharp;
 
 namespace TestAplication
@@ -10,23 +11,17 @@ namespace TestAplication
 
         //--------------------- COMMON METHODS ---------------------
 
-        static public XmlDocument getResponseAsXMLDocument(string requestURI, RestClient client, string res_type)
+        static public XDocument getResponseAsXMLDocument(string requestURI, RestClient client, string res_type)
         {
             try
             {
                 // Creates and Executes a GET request
                 RestRequest request = new RestRequest(requestURI, Method.Get);
-
-                // Add the somiod-discover header with the value "application"
                 request.AddHeader("somiod-discover", "application");
-
                 RestResponse response = client.Execute(request);
 
-                // Creates the XML document
-                var doc = new XmlDocument();
-
-                // Loads the Response XML Content to the XML document
-                doc.LoadXml(response.Content);
+                // Creates the XDocument
+                XDocument xDoc = XDocument.Parse(response.Content);
 
                 // Shows Status Code
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -34,18 +29,15 @@ namespace TestAplication
                     MessageBox.Show("Resource does not exist");
                     return null;
                 }
-
-                // Display the status code
                 MessageBox.Show(response.StatusCode.ToString());
 
-                return doc;
+                return xDoc;
             }
             catch (Exception)
             {
                 throw new Exception("Could not get " + res_type);
             }
         }
-
 
 
         static public void delete(string requestURI, RestClient client)
