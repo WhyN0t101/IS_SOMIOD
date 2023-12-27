@@ -23,7 +23,6 @@ namespace TestAplication
             InitializeComponent();
             client = new RestClient(baseURI);
         }
-
         private void buttonGetAllApplications_Click(object sender, EventArgs e)
         {
             TextBoxListAllApplications.Clear();
@@ -88,7 +87,7 @@ namespace TestAplication
             {
                 MessageBox.Show("Please enter both application names");
                 return;
-        }
+            }
 
             string requestUri = $"/api/somiod/{applicationName}";
 
@@ -118,13 +117,12 @@ namespace TestAplication
 
             try
             {
-                RequestsHandler.Delete(requestUri, client);
+                RequestsHandler.deleteApplication(requestUri, client);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error: {ex.Message}");
             }
         }
-
     }
 }

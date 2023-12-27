@@ -35,12 +35,13 @@ namespace TestAplication
             }
             catch (Exception)
             {
-                throw new Exception("Could not get " + res_type);
+                MessageBox.Show("Application does not exist");
+                return null;
             }
         }
 
 
-        static public void delete(string requestURI, RestClient client)
+        static public void deleteApplication(string requestURI, RestClient client)
         {
             try
             {
@@ -63,9 +64,7 @@ namespace TestAplication
                 throw new Exception(e.Message);
             }
         }
-        //--------------------- END OF COMMON METHODS ---------------------
-
-        //--------------------- APPLICATION ---------------------
+ 
         static public void createApplication(string requestURI, RestClient client, string applicationName)
         {
             try
