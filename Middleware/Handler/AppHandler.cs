@@ -12,18 +12,22 @@ namespace Middleware.Handler
 
         public static List<Application> GetAllApplications()
         {
+            //Creating list of apps and SQL querry
             List<Application> listOfApps = new List<Application>();
             string queryString = "SELECT * FROM Application";
 
+            //Creating connection to DB 
             using (SqlConnection connection = new SqlConnection(connStr))
+            using (SqlCommand command = new SqlCommand(queryString, connection))
             {
                 try
                 {
-                    SqlCommand command = new SqlCommand(queryString, connection);
+                    //Opening connection
                     connection.Open();
-
+                    //Instacing reader
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
+                        //While it reades, creates that application and adds it to the list
                         while (reader.Read())
                         {
                             Application app = new Application
@@ -37,34 +41,33 @@ namespace Middleware.Handler
                         }
                     }
                 }
-                catch (Exception)
+                catch (SqlException ex)
                 {
-                    throw;
-                }
-                finally
-                {
-                    if (connection.State == ConnectionState.Open)
-                        connection.Close();
+                    throw new ApplicationException("Error retrieving application from the database.", ex);
                 }
             }
-
+            //Returns the list with the application read in the DB
             return listOfApps;
         }
 
         public static Application GetApplicationFromDatabase(string name)
         {
+            //Creating SQL querry string
             string queryString = "SELECT * FROM Application WHERE name = @name";
-
+            //Creating the connection to SQL DB
             using (SqlConnection connection = new SqlConnection(connStr))
+            using (SqlCommand command = new SqlCommand(queryString, connection))
             {
+                //Add parameter name
+                command.Parameters.AddWithValue("@name", name);
                 try
                 {
-                    SqlCommand command = new SqlCommand(queryString, connection);
-                    command.Parameters.AddWithValue("@name", name);
+                    //Opening SQL connecting
                     connection.Open();
-
+                    //Instances reader
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
+                        //Start reading the application data and adds it to the 'new' app and returns it
                         if (reader.Read())
                         {
                             Application app = new Application
@@ -84,139 +87,123 @@ namespace Middleware.Handler
                 }
                 catch (SqlException ex)
                 {
-                    throw ex;
-                }
-                finally
-                {
-                    if (connection.State == ConnectionState.Open)
-                        connection.Close();
+                    throw new ApplicationException("Error retrieving application from the database.", ex);
                 }
             }
         }
 
         public static Application PostToDatabase(Application application)
         {
-            using (SqlConnection connection = new SqlConnection(connStr))
+            //Replace empty spaces
+            string newApplicationName = application.Name.Replace(" ", "_");
+            //Checks if the application already exists
+            if (GetApplicationFromDatabase(newApplicationName) != null)
             {
+                throw new Exception("There is already an existing application named " + newApplicationName + " in the database.");
+            }
+            //Create SQL connection to DB and creates a SQL querry string
+            using (SqlConnection connection = new SqlConnection(connStr))
+            using (SqlCommand command = new SqlCommand("INSERT INTO Application VALUES (@name, @creation_dt)", connection))
+            {
+                //Adds the parameters name, and time
+                command.Parameters.AddWithValue("@name", newApplicationName);
+                command.Parameters.AddWithValue("@creation_dt", DateTime.Now);
+
                 try
                 {
-
-                    if (GetApplicationFromDatabase(application.Name) != null)
+                    //Opens the connection to the DB
+                    connection.Open();
+                    //Checks if rows were affected
+                    int rowsAffected = command.ExecuteNonQuery();
+                    //If not then the application didnt post
+                    if (rowsAffected == 0)
                     {
-                        throw new Exception("There is already an existing application named " + application.Name + " in the database.");
+                        throw new Exception("No rows were affected by the insert operation.");
                     }
-
-                    string queryString = "INSERT INTO Application VALUES (@name, @creation_dt)";
-                    string newApplicationName = application.Name.Replace(" ", "_");
-
-                    using (SqlCommand command = new SqlCommand(queryString, connection))
-                    {
-                        command.Parameters.AddWithValue("@name", newApplicationName);
-                        command.Parameters.AddWithValue("@creation_dt", DateTime.Now);
-
-                        connection.Open();
-                        int rowsAffected = command.ExecuteNonQuery();
-
-                        if (rowsAffected == 0)
-                        {
-                            throw new Exception("No rows were affected by the insert operation.");
-                        }
-                    }
-
+                    //Searches the app in DB and returns it to newApp and adds the res_type
                     Application newApp = GetApplicationFromDatabase(newApplicationName);
                     newApp.Res_type = "application";
                     return newApp;
                 }
-                catch (Exception ex)
+                catch (SqlException ex)
                 {
-
-                    throw ex;
-                }
-                finally
-                {
-                    if (connection.State == ConnectionState.Open)
-                        connection.Close();
+                    throw new ApplicationException("Error inserting application into the database.", ex);
                 }
             }
         }
 
         public static Application UpdateToDatabase(string currentName, Application newApplication)
         {
-            using (SqlConnection connection = new SqlConnection(connStr))
+
+            string newApplicationName = newApplication.Name.Replace(" ", "_");
+
+            if (GetApplicationFromDatabase(currentName) == null)
             {
+                throw new Exception("Application with the current name does not exist.");
+            }
+            //Create SQL connection to DB and creates a SQL querry string
+            using (SqlConnection connection = new SqlConnection(connStr))
+            using (SqlCommand command = new SqlCommand("UPDATE Application SET Name = @newName WHERE Name = @currentName", connection))
+            {
+
+                //Adds the parameters in the querry
+                command.Parameters.AddWithValue("@newName", newApplicationName);
+                command.Parameters.AddWithValue("@currentName", currentName);
+
                 try
                 {
-                    if (GetApplicationFromDatabase(currentName) == null)
-                    {
-                        throw new Exception("Application with the current name does not exist.");
-                    }
-
-                    string queryString = "UPDATE Application SET Name = @newName WHERE Name = @currentName";
-                    SqlCommand command = new SqlCommand(queryString, connection);
-                    string newApplicationName = newApplication.Name.Replace(" ", "_");
-
-                    command.Parameters.AddWithValue("@newName", newApplicationName);
-                    command.Parameters.AddWithValue("@currentName", currentName);
-
+                    //Opens connection and executes the command
                     connection.Open();
                     command.ExecuteNonQuery();
-
+                    //Gets the app from the DB and changes the res_type
                     Application updatedApp = GetApplicationFromDatabase(newApplicationName);
                     updatedApp.Res_type = "application";
                     return updatedApp;
                 }
-                catch (Exception ex)
+                catch (SqlException ex)
                 {
-
-                    throw ex;
-                }
-                finally
-                {
-                    if (connection.State == ConnectionState.Open)
-                        connection.Close();
+                   
+                    throw new ApplicationException("Error updating application in the database.", ex);
                 }
             }
         }
+
         public static void DeleteFromDatabase(string name)
         {
+            //Checks if the application exists
             Application app = GetApplicationFromDatabase(name);
             if (app == null)
             {
-                throw new Exception("Application with the current name does not exist.");
+                throw new Exception("Application does not exist.");
             }
-            /*  List<Container> containers = (List<Container>)Container.FindAllByParentIDInDatabase(app.Id);
+            //Checks if it has containers and deletes them if so
+            List<Container> containers = (List<Container>)ContainerHandler.GetAllContainersByParentIDInDatabase(app.Id);
+            if (containers != null)
+            {
                 foreach (Container container in containers)
                 {
-                    Container.DeleteFromDatabase(name, containers.Name);
+                    ContainerHandler.DeleteFromDatabase(name, container.Name);
                 }
-            */
-
+            }
+            //Opens connections and creates the sql command
             using (SqlConnection connection = new SqlConnection(connStr))
+            using (SqlCommand command = new SqlCommand("DELETE FROM Application WHERE Name = @Name", connection))
             {
+                //adds sql parameters
+                command.Parameters.AddWithValue("@Name", app.Name);
+
                 try
                 {
-
-                    string queryString = "DELETE Application WHERE Name = @Name";
-                    SqlCommand command = new SqlCommand(queryString, connection);
-
-
-                    // Add the parameters for the object's name 
-                    command.Parameters.AddWithValue("@name", app.Name);
-
+                    //Opens connection and executes the querry
                     connection.Open();
                     command.ExecuteNonQuery();
                 }
-                catch (Exception ex)
+                catch (SqlException ex)
                 {
-
-                    throw ex;
-                }
-                finally
-                {
-                    if (connection.State == ConnectionState.Open)
-                        connection.Close();
+                    throw new ApplicationException("Error deleting application from the database.", ex);
                 }
             }
         }
+
     }
 }
