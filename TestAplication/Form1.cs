@@ -28,7 +28,7 @@ namespace TestAplication
             TextBoxListAllApplications.Clear();
             string requestUri = "/api/somiod/";
 
-            XDocument xDoc = RequestsHandler.getResponseAsXMLDocument(requestUri, client, "applications");
+            XDocument xDoc = RequestsHandler.GetObject(requestUri, client,"application");
 
             if (xDoc != null)
             {
@@ -48,7 +48,7 @@ namespace TestAplication
             }
 
             string requestUri = $"/api/somiod/{applicationName}";
-            XDocument xDoc = RequestsHandler.getResponseAsXMLDocument(requestUri, client, "Application");
+            XDocument xDoc = RequestsHandler.GetObject(requestUri, client,"application");
 
             if (xDoc != null)
             {
@@ -70,7 +70,7 @@ namespace TestAplication
 
             try
             {
-                RequestsHandler.createApplication(requestUri, client, applicationName);
+                RequestsHandler.PostApplication(requestUri, client, applicationName);
             }
             catch (Exception ex)
             {
@@ -93,7 +93,7 @@ namespace TestAplication
 
             try
             {
-                RequestsHandler.updateApplicationName(requestUri, client, newApplicationName);
+                RequestsHandler.PutAplication(requestUri, client, newApplicationName);
             }
             catch (Exception ex)
             {
@@ -101,7 +101,7 @@ namespace TestAplication
             }
         }
 
-        private void buttonDELApplication_Click(object sender, EventArgs e)
+        private void buttonDELETEApplication_Click(object sender, EventArgs e)
         {
             // Verifies if Application Name Input is Empty
             string applicationName = textBoxApplicationName.Text.Trim();
@@ -117,11 +117,119 @@ namespace TestAplication
 
             try
             {
-                RequestsHandler.deleteApplication(requestUri, client);
+                RequestsHandler.DeleteApplication(requestUri, client);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error: {ex.Message}");
+            }
+        }
+
+        private void buttonGetAllContainers_Click(object sender, EventArgs e)
+        {
+            richTextBoxListContainers.Clear();
+            string applicationName = textBoxApplicationNameContainer.Text;
+            if (string.IsNullOrEmpty(applicationName))
+            {
+                MessageBox.Show("Please enter application name");
+                return;
+            }
+
+            string requestURI = "/api/somiod/" + applicationName + "/containers";
+            XDocument xDoc = RequestsHandler.GetObject(requestURI, client, "container");
+
+            if (xDoc == null)
+            {
+                return;
+            }
+
+            richTextBoxListContainers.Text = xDoc.ToString();
+        }
+
+        private void buttonGetContainer_Click(object sender, EventArgs e)
+        {
+            richTextBoxSpecificContainer.Clear();
+            string applicationName = textBoxApplicationNameContainer.Text;
+            string containerName = textBoxGetContainerName.Text;
+            if (string.IsNullOrEmpty(applicationName) || string.IsNullOrEmpty(containerName))
+            {
+                MessageBox.Show("Please enter both application name and container name");
+                return;
+            }
+            string requestURI = "/api/somiod/" + applicationName + "/" + containerName;
+            XDocument xDoc = RequestsHandler.GetObject(requestURI, client, "container");
+
+            if (xDoc == null)
+            {
+                return;
+            }
+
+            richTextBoxSpecificContainer.Text = xDoc.ToString();
+        }
+
+        private void buttonPOSTContainer_Click(object sender, EventArgs e)
+        {
+            // Verifies if Application Name Input is Empty
+            string applicationName = textBoxApplicationNameContainer.Text;
+            string containerName = textBoxContainerName.Text;
+
+            if (string.IsNullOrEmpty(applicationName) || string.IsNullOrEmpty(containerName))
+            {
+                MessageBox.Show("Please enter both application name and container name");
+                return;
+            }
+            // Makes the Put Request
+            string requestURI = "/api/somiod/" + applicationName;
+            try
+            {
+                RequestsHandler.PostContainer(requestURI, client, applicationName, containerName);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        private void buttonPUTContainer_Click(object sender, EventArgs e)
+        {
+            string applicationName = textBoxApplicationNameContainer.Text;
+            string newContainerName = textBoxContainerNewName.Text;
+            string containerName = textBoxContainerName.Text;
+            if (string.IsNullOrEmpty(applicationName) || string.IsNullOrEmpty(containerName) || string.IsNullOrEmpty(newContainerName))
+            {
+                MessageBox.Show("Please enter both application name and container name");
+                return;
+            }
+            // Makes the Put Request
+            string requestURI = "/api/somiod/" + applicationName + "/" + containerName;
+            try
+            {
+                RequestsHandler.PutContainer(requestURI, client, newContainerName);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        private void buttonDELETEContainer_Click(object sender, EventArgs e)
+        {
+            string applicationName = textBoxApplicationNameContainer.Text;
+            string containerName = textBoxContainerName.Text;
+
+            if (string.IsNullOrEmpty(applicationName) || string.IsNullOrEmpty(containerName))
+            {
+                MessageBox.Show("Please enter both application name and container name");
+                return;
+            }
+            string requestURI = "/api/somiod/" + applicationName + "/" + containerName;
+            try
+            {
+                RequestsHandler.DeleteContainer(requestURI, client);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
             }
         }
     }

@@ -138,6 +138,7 @@ namespace TestAplication
             this.buttonDELETEApplication.TabIndex = 12;
             this.buttonDELETEApplication.Text = "DEL (Delete)";
             this.buttonDELETEApplication.UseVisualStyleBackColor = true;
+            this.buttonDELETEApplication.Click += new System.EventHandler(this.buttonDELETEApplication_Click);
             // 
             // buttonPUTApplication
             // 
@@ -291,6 +292,7 @@ namespace TestAplication
             this.buttonDELETEContainer.TabIndex = 32;
             this.buttonDELETEContainer.Text = "DEL (Delete)";
             this.buttonDELETEContainer.UseVisualStyleBackColor = true;
+            this.buttonDELETEContainer.Click += new System.EventHandler(this.buttonDELETEContainer_Click);
             // 
             // buttonPUTContainer
             // 
@@ -301,6 +303,7 @@ namespace TestAplication
             this.buttonPUTContainer.TabIndex = 31;
             this.buttonPUTContainer.Text = "PUT (Update)";
             this.buttonPUTContainer.UseVisualStyleBackColor = true;
+            this.buttonPUTContainer.Click += new System.EventHandler(this.buttonPUTContainer_Click);
             // 
             // buttonPOSTContainer
             // 
@@ -311,6 +314,7 @@ namespace TestAplication
             this.buttonPOSTContainer.TabIndex = 30;
             this.buttonPOSTContainer.Text = "POST (Create)";
             this.buttonPOSTContainer.UseVisualStyleBackColor = true;
+            this.buttonPOSTContainer.Click += new System.EventHandler(this.buttonPOSTContainer_Click);
             // 
             // richTextBoxListContainers
             // 
@@ -417,6 +421,7 @@ namespace TestAplication
             this.buttonGetContainer.TabIndex = 19;
             this.buttonGetContainer.Text = "Get Container";
             this.buttonGetContainer.UseVisualStyleBackColor = true;
+            this.buttonGetContainer.Click += new System.EventHandler(this.buttonGetContainer_Click);
             // 
             // buttonGetAllContainers
             // 
@@ -427,6 +432,7 @@ namespace TestAplication
             this.buttonGetAllContainers.TabIndex = 18;
             this.buttonGetAllContainers.Text = "Get All Containers\r\n";
             this.buttonGetAllContainers.UseVisualStyleBackColor = true;
+            this.buttonGetAllContainers.Click += new System.EventHandler(this.buttonGetAllContainers_Click);
             // 
             // tabPage3
             // 

@@ -9,15 +9,15 @@ namespace TestAplication
     internal class RequestsHandler
     {
 
-        //--------------------- COMMON METHODS ---------------------
+        
 
-        static public XDocument getResponseAsXMLDocument(string requestURI, RestClient client, string res_type)
+        static public XDocument GetObject(string requestUri, RestClient client,string res_type)
         {
             try
             {
                 // Creates and Executes a GET request
-                RestRequest request = new RestRequest(requestURI, Method.Get);
-                request.AddHeader("somiod-discover", "application");
+                RestRequest request = new RestRequest(requestUri, Method.Get);
+                request.AddHeader("somiod-discover", res_type);
                 RestResponse response = client.Execute(request);
 
                 // Creates the XDocument
@@ -29,6 +29,7 @@ namespace TestAplication
                     MessageBox.Show("Resource does not exist");
                     return null;
                 }
+
                 MessageBox.Show(response.StatusCode.ToString());
 
                 return xDoc;
@@ -40,16 +41,15 @@ namespace TestAplication
             }
         }
 
-
-        static public void deleteApplication(string requestURI, RestClient client)
+        static public void DeleteApplication(string requestUri, RestClient client)
         {
             try
             {
                 // Creates and Executes a Delete request
-                RestRequest request = new RestRequest(requestURI, Method.Delete);
+                RestRequest request = new RestRequest(requestUri, Method.Delete);
                 RestResponse response = client.Execute(request);
-                // Shows Status Code
 
+                // Shows Status Code
                 if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
                     MessageBox.Show("Resource does not exist");
@@ -64,8 +64,8 @@ namespace TestAplication
                 throw new Exception(e.Message);
             }
         }
- 
-        static public void createApplication(string requestURI, RestClient client, string applicationName)
+
+        static public void PostApplication(string requestUri, RestClient client, string applicationName)
         {
             try
             {
@@ -75,7 +75,6 @@ namespace TestAplication
                     Name = applicationName,
                     Res_type = "application"
                 };
-
 
                 var request = new RestRequest("/api/somiod", Method.Post);
 
@@ -97,12 +96,13 @@ namespace TestAplication
                 throw new Exception(e.Message);
             }
         }
-        static public void updateApplicationName(string requestURI, RestClient client, string newApplicationName)
+
+        static public void PutAplication(string requestUri, RestClient client, string newApplicationName)
         {
             try
             {
                 // Creates and Executes a PUT request
-                RestRequest request = new RestRequest(requestURI, Method.Put);
+                RestRequest request = new RestRequest(requestUri, Method.Put);
 
                 // Creates Application Object
                 Middleware.Models.Application application = new Middleware.Models.Application
@@ -112,7 +112,7 @@ namespace TestAplication
                 };
 
                 // Adds the message body to the response
-                request.AddJsonBody(application);
+                request.AddObject(application);
 
                 RestResponse response = client.Execute(request);
                 // Shows Status Code
@@ -131,13 +131,13 @@ namespace TestAplication
             }
         }
 
-        //--------------------- END OF APPLICATION ---------------------
 
-        //--------------------- ContainerS ---------------------
-        static public void createContainer(string requestURI, RestClient client, string applicationName, string ContainerName)
+  
+        static public void PostContainer(string requestURI, RestClient client, string applicationName, string ContainerName)
         {
             try
             {
+
                 // Creates the Object Application
                 Middleware.Models.Container Container = new Middleware.Models.Container
                 {
@@ -149,7 +149,7 @@ namespace TestAplication
                 var request = new RestRequest("/api/somiod/" + applicationName, Method.Post);
 
                 // Adds the message body to the response
-                request.AddObject(Container);
+                request.AddXmlBody(Container);
 
                 RestResponse response = client.Execute(request);
                 if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
@@ -167,7 +167,7 @@ namespace TestAplication
             }
         }
 
-        static public void updateContainer(string requestURI, RestClient client, string newContainerName)
+        static public void PutContainer(string requestURI, RestClient client, string newContainerName)
         {
             try
             {
@@ -177,11 +177,11 @@ namespace TestAplication
                 Middleware.Models.Container Container = new Middleware.Models.Container
                 {
                     Name = newContainerName,
-                    Res_type = "Container"
+                    Res_type = "container"
                 };
 
                 // Adds the message body to the response
-                request.AddJsonBody(Container);
+                request.AddXmlBody(Container);
 
                 RestResponse response = client.Execute(request);
                 // Shows Status Code
@@ -192,6 +192,29 @@ namespace TestAplication
                 else
                 {
                     MessageBox.Show("Container updated");
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        static public void DeleteContainer(string requestUri, RestClient client)
+        {
+            try
+            {
+                // Creates and Executes a Delete request
+                RestRequest request = new RestRequest(requestUri, Method.Delete);
+                RestResponse response = client.Execute(request);
+
+                // Shows Status Code
+                if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    MessageBox.Show("Resource does not exist");
+                }
+                else
+                {
+                    MessageBox.Show("Deleted");
                 }
             }
             catch (Exception e)
