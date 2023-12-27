@@ -20,7 +20,8 @@ namespace Middleware.Controllers
         [Route("api/somiod")]
         public IHttpActionResult GetAllApplications()
         {
-            //Verify if it has a header
+            
+             //Verify if it has a header
             if (!Request.Headers.Contains("somiod-discover"))
             {
                 return BadRequest();

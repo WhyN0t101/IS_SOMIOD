@@ -1,12 +1,7 @@
-﻿using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 using System.Windows.Forms;
 using System.Xml;
-using Restsharp;
+using RestSharp;
 
 namespace TestAplication
 {
@@ -21,6 +16,10 @@ namespace TestAplication
             {
                 // Creates and Executes a GET request
                 RestRequest request = new RestRequest(requestURI, Method.Get);
+
+                // Add the somiod-discover header with the value "application"
+                request.AddHeader("somiod-discover", "application");
+
                 RestResponse response = client.Execute(request);
 
                 // Creates the XML document
@@ -35,8 +34,9 @@ namespace TestAplication
                     MessageBox.Show("Resource does not exist");
                     return null;
                 }
-                MessageBox.Show(response.StatusCode.ToString());
 
+                // Display the status code
+                MessageBox.Show(response.StatusCode.ToString());
 
                 return doc;
             }
@@ -45,6 +45,7 @@ namespace TestAplication
                 throw new Exception("Could not get " + res_type);
             }
         }
+
 
 
         static public void delete(string requestURI, RestClient client)
