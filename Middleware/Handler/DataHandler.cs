@@ -1,15 +1,18 @@
 ﻿using Middleware.Models;
 using System;
 using System.Data.SqlClient;
+using System.Net;
+using System.Text;
 using System.Xml;
+using uPLibrary.Networking.M2Mqtt;
 
 namespace Middleware.Handler
 {
     public class DataHandler
     {
         static string connStr = Properties.Settings.Default.connStr;
-      
-        public static int SaveToDatabaseData(Data data, string application_name, string container_name)
+
+        public static int PostToDatabase(Data data, string application_name, string container_name)
         {
             int idInserted = -1;
             XmlDocument doc = new XmlDocument();
@@ -27,7 +30,7 @@ namespace Middleware.Handler
                 command.Parameters.AddWithValue("@content", content);
                 command.Parameters.AddWithValue("@date", DateTime.Now);
 
-                Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
+                Models.Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
 
                 if (container == null)
                 {
@@ -107,7 +110,7 @@ namespace Middleware.Handler
             }
         }
 
-          public static Data GetDataFromDatabase(string application_name, string container_name, int data_id)
+        public static Data GetDataFromDatabase(string application_name, string container_name, int data_id)
         {
             using (SqlConnection connection = new SqlConnection(connStr))
             {
@@ -120,7 +123,7 @@ namespace Middleware.Handler
                 }
 
                 // Find Container 
-                Container container = ContainerHandler.GetContainerInDatabase(application.Name, container_name);
+                Models.Container container = ContainerHandler.GetContainerInDatabase(application.Name, container_name);
 
                 if (container == null)
                 {
@@ -191,9 +194,9 @@ namespace Middleware.Handler
                 catch (SqlException ex)
                 {
                     throw new Exception(ex.Message);
+                }
             }
         }
-    }
         public static void PublishDataToMosquitto(string application_name, string module_name, Data data, string eventMqt)
         {
             String domain = "127.0.0.1";
@@ -204,7 +207,7 @@ namespace Middleware.Handler
             {
                 Console.WriteLine("Error connecting to message broker...");
                 return;
-}
+            }
 
             string topic = application_name + "/" + module_name;
             mcClient.Publish(topic, Encoding.UTF8.GetBytes(eventMqt + ";" + data.Content));

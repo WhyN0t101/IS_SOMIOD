@@ -1,15 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.ComponentModel;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Formatting;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Runtime.Remoting.Messaging;
 using System.Web.Http;
-using System.Xml.Linq;
 using Middleware.Handler;
 using Middleware.Models;
 using Newtonsoft.Json.Linq;
@@ -148,7 +141,7 @@ namespace Middleware.Controllers
 
         [Route("api/somiod/{application_name}")]
         [HttpPost]
-        public IHttpActionResult PostContainer(string application_name, [FromBody] Container container)
+        public IHttpActionResult PostContainer(string application_name, [FromBody] Models.Container container)
         {
             //Checks if container is null or if res_type is container
             if (container == null || container.Res_type != "container")
@@ -160,7 +153,7 @@ namespace Middleware.Controllers
             {
                 ContainerHandler.PostToDatabase(container, application_name);
             }
-            catch (System.Exception ex)
+            catch (Exception )
             {
                 return BadRequest("Failed to create container");
             }
@@ -187,7 +180,7 @@ namespace Middleware.Controllers
                 return Unauthorized();
             }
 
-            IEnumerable<Container> containers;
+            IEnumerable<Models.Container> containers;
 
             try
             {
@@ -317,7 +310,7 @@ namespace Middleware.Controllers
                 return BadRequest();
             }
         }
-        // POST: api/Somiod/lighting/light_bulb
+        
         [Route("api/somiod/{application_name}/{container_name}")]
         [HttpPost]
         public IHttpActionResult PostDataOrSubscription(string application_name, string container_name, [FromBody] JObject newObj)

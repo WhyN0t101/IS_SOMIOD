@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
 using Middleware.Models;
 
@@ -145,7 +144,7 @@ namespace Middleware.Handler
             using (SqlConnection connection = new SqlConnection(connStr))
             using (SqlCommand command = new SqlCommand("UPDATE Application SET Name = @newName WHERE Name = @currentName", connection))
             {
-
+              
                 //Adds the parameters in the querry
                 command.Parameters.AddWithValue("@newName", newApplicationName);
                 command.Parameters.AddWithValue("@currentName", currentName);

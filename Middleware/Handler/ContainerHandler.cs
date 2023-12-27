@@ -75,14 +75,11 @@ namespace Middleware.Handler
 
                                 dataArray.Add(DataObj);
                             }
-                            readerData.Close();
                             container.Data = dataArray;
-                            connection.Close();
                             return container;
                         }
                         else
                         {
-                            connection.Close();
                             return null;
 
                         }
@@ -106,63 +103,67 @@ namespace Middleware.Handler
 
                 if (applicationObj == null)
                 {
-                    throw new Exception("There is no application named  " + application_name);
+                    throw new Exception($"There is no application named {application_name}");
                 }
-                string searchCommand = "SELECT * FROM Container WHERE Parent = @Parent";
-                SqlCommand command = new SqlCommand(searchCommand, connection);
-                command.Parameters.AddWithValue("@Parent", applicationObj.Id);
+
+                string containerSearchCommand = "SELECT * FROM Container WHERE Parent = @Parent";
+                string dataSearchCommand = "SELECT * FROM Data WHERE Parent = @ParentData";
 
                 try
                 {
                     connection.Open();
-                    SqlDataReader reader = command.ExecuteReader();
 
-                    while (reader.Read())
+                    // Retrieve Containers
+                    using (SqlCommand containerCommand = new SqlCommand(containerSearchCommand, connection))
                     {
-                        Container newContainer = new Container
+                        containerCommand.Parameters.AddWithValue("@Parent", applicationObj.Id);
+
+                        using (SqlDataReader containerReader = containerCommand.ExecuteReader())
                         {
-                            Id = (int)reader["id"],
-                            Name = (string)reader["name"],
-                            Creation_dt = (DateTime)reader["creation_dt"],
-                            Res_type = "container",
-                            Parent = (int)reader["parent"]
-
-                        };
-                        containers.Add(newContainer);
+                            while (containerReader.Read())
+                            {
+                                Container newContainer = new Container
+                                {
+                                    Id = (int)containerReader["id"],
+                                    Name = (string)containerReader["name"],
+                                    Creation_dt = (DateTime)containerReader["creation_dt"],
+                                    Res_type = "container",
+                                    Parent = (int)containerReader["parent"]
+                                };
+                                containers.Add(newContainer);
+                            }
+                        }
                     }
-                    reader.Close();
 
+                    // Retrieve Data for Each Container
                     foreach (Container container in containers)
                     {
                         List<Data> dataArray = new List<Data>();
-                        // Set up the command to search for the object by name
-                        string searchDataCommand = "SELECT * FROM Data WHERE Parent = @ParentData";
-                        SqlCommand commandData = new SqlCommand(searchDataCommand, connection);
-                        commandData.Parameters.AddWithValue("@ParentData", container.Id);
 
-                        SqlDataReader readerData = commandData.ExecuteReader();
-
-                        // Check if the object was found
-                        while (readerData.Read())
+                        using (SqlCommand dataCommand = new SqlCommand(dataSearchCommand, connection))
                         {
-                            Data dataObject = new Data
+                            dataCommand.Parameters.AddWithValue("@ParentData", container.Id);
+
+                            using (SqlDataReader dataReader = dataCommand.ExecuteReader())
                             {
-                                Id = (int)reader["id"],
-                                Content = (string)reader["content"],
-                                Creation_dt = (DateTime)reader["creation_dt"],
-                                Res_type = "data",
-                                Parent = (int)reader["parent"]
+                                while (dataReader.Read())
+                                {
+                                    Data dataObject = new Data
+                                    {
+                                        Id = (int)dataReader["id"],
+                                        Content = (string)dataReader["content"],
+                                        Creation_dt = (DateTime)dataReader["creation_dt"],
+                                        Res_type = "data",
+                                        Parent = (int)dataReader["parent"]
+                                    };
 
-                            };
-
-                            dataArray.Add(dataObject);
+                                    dataArray.Add(dataObject);
+                                }
+                            }
                         }
+
                         container.Data = dataArray;
-
-                        readerData.Close();
                     }
-
-                    connection.Close();
                 }
                 catch (SqlException ex)
                 {
@@ -171,8 +172,8 @@ namespace Middleware.Handler
 
                 return containers;
             }
-
         }
+
         public static IEnumerable<Container> GetAllContainersByParentIDInDatabase(int application_id)
         {
             using (SqlConnection connection = new SqlConnection(connectionString))

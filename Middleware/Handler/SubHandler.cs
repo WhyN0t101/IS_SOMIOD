@@ -1,5 +1,5 @@
 ﻿using Middleware.Models;
-﻿using System;
+using System;
 using System.Data.SqlClient;
 
 namespace Middleware.Handler
