@@ -19,8 +19,8 @@ namespace Middleware.Models
         public int Parent { get; set; }
         [XmlElement("creation_dt")]
         public DateTime Creation_dt { get; set; }
+
         [XmlElement("data")]
         public List<Data> Data { get; set; }
-
     }
 }

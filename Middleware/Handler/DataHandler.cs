@@ -165,5 +165,49 @@ namespace Middleware.Handler
                 }
             }
         }
+        public static void DeleteFromDatabase(string application_name, string container_name, int data_id)
+        {
+            // Find the data
+            Data obj = GetDataFromDatabase(application_name, container_name, data_id);
+            if (obj == null)
+            {
+                throw new Exception("Data Not Found");
+            }
+
+
+            using (SqlConnection connection = new SqlConnection(connStr))
+            {
+                // Set up the command to delete object from the database
+                string insertCommand = "DELETE FROM Data WHERE Id = @Id";
+                SqlCommand command = new SqlCommand(insertCommand, connection);
+
+                command.Parameters.AddWithValue("@Id", data_id);
+
+                try
+                {
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                }
+                catch (SqlException ex)
+                {
+                    throw new Exception(ex.Message);
+            }
+        }
+    }
+        public static void PublishDataToMosquitto(string application_name, string module_name, Data data, string eventMqt)
+        {
+            String domain = "127.0.0.1";
+            MqttClient mcClient = new MqttClient(IPAddress.Parse(domain));
+
+            mcClient.Connect(Guid.NewGuid().ToString());
+            if (!mcClient.IsConnected)
+            {
+                Console.WriteLine("Error connecting to message broker...");
+                return;
+}
+
+            string topic = application_name + "/" + module_name;
+            mcClient.Publish(topic, Encoding.UTF8.GetBytes(eventMqt + ";" + data.Content));
+        }
     }
 }

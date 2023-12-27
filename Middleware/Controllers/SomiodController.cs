@@ -229,7 +229,7 @@ namespace Middleware.Controllers
 
         [Route("api/somiod/{application_name}/{container_name}")]
         [HttpPut]
-        public IHttpActionResult PutContainer(string application_name, string container_name, [FromBody] Container newContainer)
+        public IHttpActionResult PutContainer(string application_name, string container_name, [FromBody] Models.Container newContainer)
         {
             //Checks if the new container is null and res_type container
             if (newContainer == null || newContainer.Res_type != "container")
@@ -242,19 +242,128 @@ namespace Middleware.Controllers
                 return NotFound();
             }
             //Updates the container
-            Container container;
+            Models.Container container;
             try
             {
                 container = ContainerHandler.PutToDatabase(application_name, container_name, newContainer);
 
             }
-            catch (System.Exception ex)
+            catch (Exception)
             {
                 return BadRequest("Faild to update container");
             }
 
             return Ok(container);
 
+        }
+        [Route("api/somiod/{application_name}/{container_name}")]
+        [HttpGet]
+        public IHttpActionResult GetContainerFromApplication(string application_name, string container_name)
+        {
+            Models.Container container = null;
+
+            try
+            {
+                container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
+
+                if (container == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(container);
+            }
+        
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
+        [Route("api/somiod/{application_name}/{container_name}/{data_id}")]
+        [HttpGet]
+        public IHttpActionResult GetDataFromContainer(string application_name, string container_name, int data_id)
+        {
+            //Verify if it has a header
+            if (!Request.Headers.Contains("somiod-discover"))
+            {
+                return BadRequest("Does not have container in header");
+            }
+
+            var discoverHeaderValue = Request.Headers.GetValues("somiod-discover")?.FirstOrDefault();
+
+            //Verify if the header is null or has the "container" 
+            if (string.IsNullOrEmpty(discoverHeaderValue) || !discoverHeaderValue.Equals("data", StringComparison.OrdinalIgnoreCase))
+            {
+
+                return Unauthorized();
+            }
+            Data data = null;
+
+            try
+            {
+                data = DataHandler.GetDataFromDatabase(application_name, container_name,data_id);
+
+                if (data == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(data);
+            }
+
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+        // POST: api/Somiod/lighting/light_bulb
+        [Route("api/somiod/{application_name}/{container_name}")]
+        [HttpPost]
+        public IHttpActionResult PostDataOrSubscription(string application_name, string container_name, [FromBody] JObject newObj)
+        {
+            //--Data
+            if (newObj["res_type"].ToString().Equals("data"))
+            {
+                Data data = newObj.ToObject<Data>();
+
+                int idInserted = -1;
+
+                try
+                {
+                    idInserted = DataHandler.PostToDatabase(data, application_name, container_name);
+                    //DataHandler.PublishDataToMosquitto(application_name, module_name, data, "creation");
+                }
+                catch (System.Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+
+              return  Created(new Uri(Request.RequestUri, application_name), idInserted);
+            }
+            //--Subscription
+            else if (newObj["res_type"].ToString().Equals("subscription"))
+            {
+                Subscription subscription = newObj.ToObject<Subscription>();
+
+                int rowsInserted;
+
+                try
+                {
+                    rowsInserted = SubHandler.PostToDatabase(application_name, container_name, subscription);
+                }
+                catch (System.Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+
+               return  Created(new Uri(Request.RequestUri, application_name), rowsInserted);
+            }
+            //--Neither of them
+            else
+            {
+                return BadRequest("Object is not of 'data' or 'subscription' res_type, is " + newObj["res_type"]);
+            }
         }
 
     }
