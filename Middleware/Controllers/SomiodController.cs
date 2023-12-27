@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Web.Http;
+using System.Xml;
 using Middleware.Handler;
 using Middleware.Models;
 using Newtonsoft.Json.Linq;
@@ -153,7 +155,7 @@ namespace Middleware.Controllers
             {
                 ContainerHandler.PostToDatabase(container, application_name);
             }
-            catch (Exception )
+            catch (Exception)
             {
                 return BadRequest("Failed to create container");
             }
@@ -266,7 +268,7 @@ namespace Middleware.Controllers
 
                 return Ok(container);
             }
-        
+
             catch (Exception)
             {
                 return BadRequest();
@@ -295,7 +297,7 @@ namespace Middleware.Controllers
 
             try
             {
-                data = DataHandler.GetDataFromDatabase(application_name, container_name,data_id);
+                data = DataHandler.GetDataFromDatabase(application_name, container_name, data_id);
 
                 if (data == null)
                 {
@@ -310,37 +312,48 @@ namespace Middleware.Controllers
                 return BadRequest();
             }
         }
-        
         [Route("api/somiod/{application_name}/{container_name}")]
         [HttpPost]
-        public IHttpActionResult PostDataOrSubscription(string application_name, string container_name, [FromBody] JObject newObj)
+        public IHttpActionResult PostDataOrSubscription(string application_name, string container_name, [FromBody] string requestData)
         {
-            //--Data
-            if (newObj["res_type"].ToString().Equals("data"))
+            if (string.IsNullOrEmpty(requestData))
             {
-                Data data = newObj.ToObject<Data>();
+                return BadRequest("Request body is empty");
+            }
 
-                int idInserted = -1;
+            Data data;
+            Subscription subscription = null;
 
+            try
+            {
+
+                data = DeserializeXml<Data>(requestData);
+
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            int idInserted = -1;
+            int rowsInserted;
+
+            if (data != null)
+            {
                 try
                 {
                     idInserted = DataHandler.PostToDatabase(data, application_name, container_name);
-                    //DataHandler.PublishDataToMosquitto(application_name, module_name, data, "creation");
+                    // DataHandler.PublishDataToMosquitto(application_name, module_name, data, "creation");
                 }
                 catch (System.Exception ex)
                 {
                     return BadRequest(ex.Message);
                 }
 
-              return  Created(new Uri(Request.RequestUri, application_name), idInserted);
+                return Created(new Uri(Request.RequestUri, application_name), idInserted);
             }
-            //--Subscription
-            else if (newObj["res_type"].ToString().Equals("subscription"))
+            else if (subscription != null)
             {
-                Subscription subscription = newObj.ToObject<Subscription>();
-
-                int rowsInserted;
-
                 try
                 {
                     rowsInserted = SubHandler.PostToDatabase(application_name, container_name, subscription);
@@ -350,12 +363,20 @@ namespace Middleware.Controllers
                     return BadRequest(ex.Message);
                 }
 
-               return  Created(new Uri(Request.RequestUri, application_name), rowsInserted);
+                return Created(new Uri(Request.RequestUri, application_name), rowsInserted);
             }
-            //--Neither of them
             else
             {
-                return BadRequest("Object is not of 'data' or 'subscription' res_type, is " + newObj["res_type"]);
+                return BadRequest("Object is not of 'data' or 'subscription' res_type");
+            }
+        }
+        private T DeserializeXml<T>(string xmlString)
+        {
+            var serializer = new System.Xml.Serialization.XmlSerializer(typeof(T));
+
+            using (var reader = new StringReader(xmlString))
+            {
+                return (T)serializer.Deserialize(reader);
             }
         }
 

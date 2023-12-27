@@ -25,8 +25,8 @@ namespace Middleware.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"C:\\Users\\Tiago Pereira\\Deskt" +
-            "op\\SOMIOD_IS\\Middleware\\App_Data\\DatabaseIS.mdf\";Integrated Security=True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"|DataDirectory|\\DatabaseIS.m" +
+            "df\";Integrated Security=True")]
         public string connStr {
             get {
                 return ((string)(this["connStr"]));

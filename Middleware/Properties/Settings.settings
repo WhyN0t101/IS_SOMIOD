@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="connStr" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="C:\Users\Tiago Pereira\Desktop\SOMIOD_IS\Middleware\App_Data\DatabaseIS.mdf";Integrated Security=True</Value>
+      <Value Profile="(Default)">Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="|DataDirectory|\DatabaseIS.mdf";Integrated Security=True</Value>
     </Setting>
   </Settings>
 </SettingsFile>
