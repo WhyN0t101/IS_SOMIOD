@@ -232,5 +232,52 @@ namespace TestAplication
                 throw new Exception(ex.Message);
             }
         }
+
+        private void buttonPOSTData_Click(object sender, EventArgs e)
+        {
+            // Verifies if Application Name Input is Empty
+            string applicationName = textBoxApplicationNameData.Text;
+            string containerName = textBoxContainerNameData.Text;
+            string dataContent = richTextBoxDataContent.Text;
+   
+            if (string.IsNullOrEmpty(applicationName) || string.IsNullOrEmpty(containerName) || string.IsNullOrEmpty(dataContent))
+            {
+                MessageBox.Show("Please enter both application name,container name and data content");
+                return;
+            }
+            // Makes the Put Request
+            string requestURI = "/api/somiod/" + applicationName + "/" + containerName;
+            try
+            {
+                RequestsHandler.PostData(requestURI, client, applicationName, containerName, dataContent);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        private void buttonDELETEData_Click(object sender, EventArgs e)
+        {
+            // Verifies if Application Name Input is Empty
+            string applicationName = textBoxApplicationNameData.Text;
+            string containerName = textBoxContainerNameData.Text;
+            string dataId = textBoxDataID.Text;
+
+            if (string.IsNullOrEmpty(applicationName) || string.IsNullOrEmpty(containerName) || string.IsNullOrEmpty(dataId))
+            {
+                MessageBox.Show("Please enter both application name,container name and data content");
+                return;
+            }
+            string requestURI = "/api/somiod/" + applicationName + "/" + containerName + "/data" + "/" + dataId;
+            try
+            {
+                RequestsHandler.DeleteData(requestURI, client);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

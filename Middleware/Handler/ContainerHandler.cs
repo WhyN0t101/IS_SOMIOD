@@ -20,6 +20,7 @@ namespace Middleware.Handler
             {
                 throw new Exception("There is no application named " + application_name);
             }
+
             // Instance SQL Connection
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
@@ -46,42 +47,46 @@ namespace Middleware.Handler
                                 Creation_dt = (DateTime)reader["creation_dt"],
                                 Res_type = "container",
                                 Parent = (int)reader["parent"]
-
                             };
 
+                            // List to store Data objects
                             List<Data> dataArray = new List<Data>();
+
+                            // Close the reader for Container
                             reader.Close();
 
-                            // Set up the command to search for the object by name
+                            // Set up the command to search for Data objects by parent
                             string searchDataCommand = "SELECT * FROM Data WHERE Parent = @ParentData";
                             SqlCommand commandData = new SqlCommand(searchDataCommand, connection);
                             commandData.Parameters.AddWithValue("@ParentData", container.Id);
 
-                            SqlDataReader readerData = commandData.ExecuteReader();
-
-                            // Check if the object was found
-                            while (readerData.Read())
+                            // Execute the reader for Data objects
+                            using (SqlDataReader readerData = commandData.ExecuteReader())
                             {
-
-                                Data DataObj = new Data
+                                // Check if Data objects were found
+                                while (readerData.Read())
                                 {
-                                    Id = (int)reader["id"],
-                                    Content = (string)reader["content"],
-                                    Creation_dt = (DateTime)reader["creation_dt"],
-                                    Res_type = "data",
-                                    Parent = (int)reader["parent"]
+                                    Data dataObj = new Data
+                                    {
+                                        Id = (int)readerData["id"],
+                                        Content = (string)readerData["content"],
+                                        Creation_dt = (DateTime)readerData["creation_dt"],
+                                        Res_type = "data",
+                                        Parent = (int)readerData["parent"]
+                                    };
 
-                                };
-
-                                dataArray.Add(DataObj);
+                                    dataArray.Add(dataObj);
+                                }
                             }
+
+                            // Assign the list of Data objects to the Container
                             container.Data = dataArray;
+
                             return container;
                         }
                         else
                         {
                             return null;
-
                         }
                     }
                 }
@@ -90,10 +95,8 @@ namespace Middleware.Handler
                     throw ex;
                 }
             }
-
-
-
         }
+
         public static IEnumerable<Container> GetAllContainers(string application_name)
         {
             using (SqlConnection connection = new SqlConnection(connectionString))

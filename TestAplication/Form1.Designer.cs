@@ -457,17 +457,18 @@ namespace TestAplication
             // 
             // buttonDELETEData
             // 
-            this.buttonDELETEData.Location = new System.Drawing.Point(691, 21);
+            this.buttonDELETEData.Location = new System.Drawing.Point(747, 23);
             this.buttonDELETEData.Margin = new System.Windows.Forms.Padding(4);
             this.buttonDELETEData.Name = "buttonDELETEData";
             this.buttonDELETEData.Size = new System.Drawing.Size(165, 27);
             this.buttonDELETEData.TabIndex = 29;
             this.buttonDELETEData.Text = "DEL (Delete)";
             this.buttonDELETEData.UseVisualStyleBackColor = true;
+            this.buttonDELETEData.Click += new System.EventHandler(this.buttonDELETEData_Click);
             // 
             // textBoxDataID
             // 
-            this.textBoxDataID.Location = new System.Drawing.Point(535, 21);
+            this.textBoxDataID.Location = new System.Drawing.Point(591, 23);
             this.textBoxDataID.Margin = new System.Windows.Forms.Padding(4);
             this.textBoxDataID.Name = "textBoxDataID";
             this.textBoxDataID.Size = new System.Drawing.Size(132, 22);
@@ -476,7 +477,7 @@ namespace TestAplication
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(464, 25);
+            this.label11.Location = new System.Drawing.Point(520, 27);
             this.label11.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(55, 16);
@@ -493,6 +494,7 @@ namespace TestAplication
             this.buttonPOSTData.TabIndex = 26;
             this.buttonPOSTData.Text = "POST (Create)";
             this.buttonPOSTData.UseVisualStyleBackColor = true;
+            this.buttonPOSTData.Click += new System.EventHandler(this.buttonPOSTData_Click);
             // 
             // richTextBoxDataContent
             // 

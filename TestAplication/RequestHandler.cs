@@ -144,8 +144,6 @@ namespace TestAplication
                     Name = ContainerName,
                     Res_type = "container"
                 };
-
-
                 var request = new RestRequest("/api/somiod/" + applicationName, Method.Post);
 
                 // Adds the message body to the response
@@ -224,11 +222,7 @@ namespace TestAplication
         }
 
 
-        //--------------------- END OF Container ---------------------
-
-        //--------------------- DATA ---------------------
-
-        static public void createData(string requestURI, RestClient client, string applicationName, string ContainerName, string dataContent)
+        static public void PostData(string requestURI, RestClient client, string applicationName, string ContainerName, string dataContent)
         {
             try
             {
@@ -238,12 +232,10 @@ namespace TestAplication
                     Content = dataContent,
                     Res_type = "data"
                 };
-
-
                 var request = new RestRequest("/api/somiod/" + applicationName + "/" + ContainerName, Method.Post);
 
                 // Adds the message body to the response
-                request.AddJsonBody(data);
+                request.AddXmlBody(data);
 
 
                 RestResponse response = client.Execute(request);
@@ -254,9 +246,6 @@ namespace TestAplication
                 throw new Exception(e.Message);
             }
         }
-        //--------------------- END OF DATA ---------------------
-
-        //--------------------- SUBSCRIPTION ---------------------
 
         static public void createSubscription(string requestURI, RestClient client, string applicationName, string ContainerName, string subscriptionName, string eventName, string endpoint)
         {
@@ -286,6 +275,30 @@ namespace TestAplication
                 else
                 {
                     MessageBox.Show(response.Content.ToString());
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        static public void DeleteData(string requestUri, RestClient client)
+        {
+            try
+            {
+                // Creates and Executes a Delete request
+                RestRequest request = new RestRequest(requestUri, Method.Delete);
+                RestResponse response = client.Execute(request);
+
+                // Shows Status Code
+                if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    MessageBox.Show("Resource does not exist");
+                }
+                else
+                {
+                    MessageBox.Show("Deleted");
                 }
             }
             catch (Exception e)
