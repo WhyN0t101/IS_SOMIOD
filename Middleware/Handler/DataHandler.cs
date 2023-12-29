@@ -20,15 +20,15 @@ namespace Middleware.Handler
 
             using (SqlConnection connection = new SqlConnection(connStr))
             {
-                string insertCmd = "INSERT INTO Data VALUES (@content, @date, @parent)";
+                string insertCmd = "INSERT INTO Data (content, creation_dt, parent) VALUES (@content, @creation_dt, @parent)";
                 SqlCommand command = new SqlCommand(insertCmd, connection);
 
                 // Extracted content from XML
                 string content = doc.SelectSingleNode("//content").InnerText;
 
                 // Add parameters for the object's properties
-                command.Parameters.AddWithValue("@content", content);
-                command.Parameters.AddWithValue("@date", DateTime.Now);
+                command.Parameters.AddWithValue("content", content);
+                command.Parameters.AddWithValue("@creation_dt", DateTime.Now);
 
                 Models.Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
 
@@ -73,33 +73,35 @@ namespace Middleware.Handler
         {
             using (SqlConnection connection = new SqlConnection(connStr))
             {
-                string searchNewlyInsertedData = "SELECT * FROM Data WHERE Parent = @parent ORDER BY Id DESC";
+                string searchNewlyInsertedData = "SELECT TOP 1 * FROM Data WHERE Parent = @parent ORDER BY Id DESC";
                 SqlCommand cmdSelect = new SqlCommand(searchNewlyInsertedData, connection);
                 cmdSelect.Parameters.AddWithValue("@parent", container_id);
 
                 try
                 {
-                    // Open the database connection and execute the search command
+                    // Open the database connection
                     connection.Open();
-                    SqlDataReader reader = cmdSelect.ExecuteReader();
 
-                    // Check if the object was found
-                    if (reader.Read())
+                    using (SqlDataReader reader = cmdSelect.ExecuteReader())
                     {
-                        // Create a new object using the data from the database
-                        Data data = new Data
+                        // Check if the object was found
+                        if (reader.Read())
                         {
-                            Id = (int)reader["id"],
-                            Content = (string)reader["content"],
-                            Creation_dt = (DateTime)reader["creation_dt"],
-                            Parent = (int)reader["parent"]
-                        };
-                        return data;
-                    }
-                    else
-                    {
-                        // Return null if the object was not found
-                        return null;
+                            // Create a new object using the data from the database
+                            Data data = new Data
+                            {
+                                Id = (int)reader["Id"],
+                                Content = (string)reader["content"],
+                                Creation_dt = (DateTime)reader["creation_dt"],
+                                Parent = (int)reader["parent"]
+                            };
+                            return data;
+                        }
+                        else
+                        {
+                            // Return null if the object was not found
+                            return null;
+                        }
                     }
                 }
                 catch (SqlException ex)
@@ -109,6 +111,7 @@ namespace Middleware.Handler
                 }
             }
         }
+
 
         public static Data GetDataFromDatabase(string application_name, string container_name, int data_id)
         {

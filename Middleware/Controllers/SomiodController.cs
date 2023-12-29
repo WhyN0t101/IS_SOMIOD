@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net;
 using System.Web.Http;
+using System.Xml;
+using System.Xml.Linq;
 using Middleware.Handler;
 using Middleware.Models;
 using Newtonsoft.Json.Linq;
@@ -18,6 +23,7 @@ namespace Middleware.Controllers
         [Route("api/somiod")]
         public IHttpActionResult GetAllApplications()
         {
+
             //Verify if it has a header
             if (!Request.Headers.Contains("somiod-discover"))
             {
@@ -153,7 +159,7 @@ namespace Middleware.Controllers
             {
                 ContainerHandler.PostToDatabase(container, application_name);
             }
-            catch (Exception )
+            catch (Exception)
             {
                 return BadRequest("Failed to create container");
             }
@@ -266,7 +272,7 @@ namespace Middleware.Controllers
 
                 return Ok(container);
             }
-        
+
             catch (Exception)
             {
                 return BadRequest();
@@ -295,7 +301,7 @@ namespace Middleware.Controllers
 
             try
             {
-                data = DataHandler.GetDataFromDatabase(application_name, container_name,data_id);
+                data = DataHandler.GetDataFromDatabase(application_name, container_name, data_id);
 
                 if (data == null)
                 {
@@ -310,54 +316,103 @@ namespace Middleware.Controllers
                 return BadRequest();
             }
         }
-        
         [Route("api/somiod/{application_name}/{container_name}")]
         [HttpPost]
-        public IHttpActionResult PostDataOrSubscription(string application_name, string container_name, [FromBody] JObject newObj)
+        public IHttpActionResult PostDataOrSubscription(string application_name, string container_name, [FromBody] XElement requestData)
         {
-            //--Data
-            if (newObj["res_type"].ToString().Equals("data"))
+            if (requestData == null)
             {
-                Data data = newObj.ToObject<Data>();
-
-                int idInserted = -1;
-
-                try
-                {
-                    idInserted = DataHandler.PostToDatabase(data, application_name, container_name);
-                    //DataHandler.PublishDataToMosquitto(application_name, module_name, data, "creation");
-                }
-                catch (System.Exception ex)
-                {
-                    return BadRequest(ex.Message);
-                }
-
-              return  Created(new Uri(Request.RequestUri, application_name), idInserted);
+                return BadRequest("Request body is empty");
             }
-            //--Subscription
-            else if (newObj["res_type"].ToString().Equals("subscription"))
+
+            string resType = requestData.Element("res_type")?.Value;
+
+            if (string.IsNullOrEmpty(resType))
             {
-                Subscription subscription = newObj.ToObject<Subscription>();
-
-                int rowsInserted;
-
-                try
-                {
-                    rowsInserted = SubHandler.PostToDatabase(application_name, container_name, subscription);
-                }
-                catch (System.Exception ex)
-                {
-                    return BadRequest(ex.Message);
-                }
-
-               return  Created(new Uri(Request.RequestUri, application_name), rowsInserted);
+                return BadRequest("Invalid request format: 'type' element is missing");
             }
-            //--Neither of them
-            else
+
+            switch (resType.ToLower())
             {
-                return BadRequest("Object is not of 'data' or 'subscription' res_type, is " + newObj["res_type"]);
+                case "data":
+                    // Handle 'data'
+                    var dataContent = requestData.Element("content").ToString();
+                    if (dataContent != null)
+                    {
+                        // Perform deserialization of Data model directly
+                        // Perform deserialization of Data model directly
+                        Data data;
+                        try
+                        {
+                            // Updated to handle the case where PostToDatabase returns an ID
+                            int idInserted = DataHandler.PostToDatabase(new Data { Content = dataContent }, application_name, container_name);
+                            data = DataHandler.GetDataFromDatabase(application_name, container_name, idInserted);
+                            //DataHandler.PublishDataToMosquitto(application_name, container_name, data, "creation");
+
+                        }
+                        catch (Exception ex)
+                        {
+                            return BadRequest($"Error processing 'data': {ex.Message}");
+                        }
+                     
+
+                        return Ok($"Data processed successfully. ID: {data.Id}");
+                    }
+                    break;
+
+                case "subscription":
+                    // Handle 'subscription'
+                    var subscriptionContent = requestData.Element("content");
+                    if (subscriptionContent != null)
+                    {
+                        // Perform deserialization of Subscription model directly
+                        Subscription subscription;
+                        try
+                        {
+                            subscription = new Subscription
+                            {
+                                Name = subscriptionContent.Element("name")?.Value,
+                                Event = subscriptionContent.Element("event")?.Value,
+                                Endpoint = subscriptionContent.Element("endpoint")?.Value
+                                // Add other properties based on your Subscription model
+                            };
+                            SubHandler.PostToDatabase(application_name, container_name, subscription);
+                        }
+                        catch (Exception ex)
+                        {
+                            return BadRequest($"Error processing 'subscription': {ex.Message}");
+                        }
+
+                        // Your logic for handling 'subscription'
+                        // ...
+
+                        return Ok("Subscription processed successfully");
+                    }
+                    break;
+
+                default:
+                    return BadRequest("Invalid 'type' value. Supported values are 'data' or 'subscription'.");
             }
+
+            return BadRequest("Invalid or missing content for the specified 'type'.");
         }
 
+        [Route("api/somiod/{application_name}/{container_name}/data/{data_id}")]
+        [HttpDelete]
+        public IHttpActionResult DeleteData(string application_name, string container_name, int data_id)
+        {
+            try
+            {
+                //TO DO MOSQUITTO
+                DataHandler.DeleteFromDatabase(application_name, container_name, data_id);
+               //DataHandler.PublishDataToMosquitto(application_name, container_name, new Data(), "deletion");
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok("Deleted");
+        }
     }
 }
