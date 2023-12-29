@@ -1,5 +1,5 @@
-﻿using System;
-using RestSharp;
+﻿using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -9,9 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using uPLibrary.Networking.M2Mqtt;
-using uPLibrary.Networking.M2Mqtt.Messages;
 
-namespace LightA
+namespace LightB
 {
     public partial class Form1 : Form
     {
@@ -21,17 +20,13 @@ namespace LightA
         RestClient client = null;
         string activeModule = "";
         string eventMqt = "";
-
         public Form1()
         {
             InitializeComponent();
-
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            this.Text = "LightA";
-            client = new RestClient(baseURI);
 
         }
 
