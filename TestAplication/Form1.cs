@@ -285,10 +285,6 @@ namespace TestAplication
 
         }
 
-        private void buttonGetAllApplications_Click(object sender, EventArgs e) //GET all Applications
-        {
-
-
-        }
+        
     }
 }
