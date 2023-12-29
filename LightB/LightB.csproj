@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{CDF1D9E8-11A1-4CED-84A2-3B8A9F6FA0C4}</ProjectGuid>
+    <ProjectGuid>{41A0C681-768E-4F5F-8163-022CE6D15F4C}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>LightA</RootNamespace>
-    <AssemblyName>LightA</AssemblyName>
+    <RootNamespace>LightB</RootNamespace>
+    <AssemblyName>LightB</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
