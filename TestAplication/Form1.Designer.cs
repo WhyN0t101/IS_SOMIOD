@@ -200,6 +200,7 @@
             this.buttonGetAllApplications.TabIndex = 0;
             this.buttonGetAllApplications.Text = "Get All Applications";
             this.buttonGetAllApplications.UseVisualStyleBackColor = true;
+            this.buttonGetAllApplications.Click += new System.EventHandler(this.buttonGetAllApplications_Click);
             // 
             // TextBoxListAllApplications
             // 
@@ -638,6 +639,7 @@
             this.Controls.Add(this.tabControl1);
             this.Name = "Form1";
             this.Text = "Test Application";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
