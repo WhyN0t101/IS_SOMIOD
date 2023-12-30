@@ -16,7 +16,7 @@ namespace TestAplication
 {
     public partial class Form1 : Form
     {
-        string baseURI = @"http://localhost:53204";
+        string baseURI = @"http://localhost:52885";
         RestClient client = null;
         public Form1()
         {

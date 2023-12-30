@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3E174B9F-E4F6-48ED-84AC-36DD0B0DAD8A}</ProjectGuid>
+    <ProjectGuid>{462C1D4F-E388-428D-ADA3-4989439BED94}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>TestAplication</RootNamespace>
-    <AssemblyName>TestAplication</AssemblyName>
+    <RootNamespace>Remote</RootNamespace>
+    <AssemblyName>Remote</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -86,7 +86,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RequestHandler.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
@@ -112,12 +111,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Middleware\Middleware.csproj">
-      <Project>{e079fede-95a2-44ba-be36-8ef339a53887}</Project>
-      <Name>Middleware</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
