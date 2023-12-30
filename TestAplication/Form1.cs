@@ -156,7 +156,7 @@ namespace TestAplication
                 MessageBox.Show("Please enter both application name and container name");
                 return;
             }
-            string requestURI = "/api/somiod/" + applicationName + "/" + containerName;
+            string requestURI = "/api/somiod/" + applicationName + "/container/" + containerName;
             XDocument xDoc = RequestsHandler.GetObject(requestURI, client, "container");
 
             if (xDoc == null)

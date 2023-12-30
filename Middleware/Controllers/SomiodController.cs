@@ -254,7 +254,7 @@ namespace Middleware.Controllers
             return Ok(container);
 
         }
-        [Route("api/somiod/{application_name}/{container_name}")]
+        [Route("api/somiod/{application_name}/container/{container_name}")]
         [HttpGet]
         public IHttpActionResult GetContainerFromApplication(string application_name, string container_name)
         {
@@ -278,29 +278,13 @@ namespace Middleware.Controllers
             }
         }
 
-        [Route("api/somiod/{application_name}/{container_name}/{data_id}")]
+        [Route("api/somiod/{application_name}/{container_name}/data/{data_id}")]
         [HttpGet]
         public IHttpActionResult GetDataFromContainer(string application_name, string container_name, int data_id)
         {
-            //Verify if it has a header
-            if (!Request.Headers.Contains("somiod-discover"))
-            {
-                return BadRequest("Does not have container in header");
-            }
-
-            var discoverHeaderValue = Request.Headers.GetValues("somiod-discover")?.FirstOrDefault();
-
-            //Verify if the header is null or has the "container" 
-            if (string.IsNullOrEmpty(discoverHeaderValue) || !discoverHeaderValue.Equals("data", StringComparison.OrdinalIgnoreCase))
-            {
-
-                return Unauthorized();
-            }
-            Data data = null;
-
             try
             {
-                data = DataHandler.GetDataFromDatabase(application_name, container_name, data_id);
+                Data data = DataHandler.GetDataFromDatabase(application_name, container_name, data_id);
 
                 if (data == null)
                 {
@@ -315,6 +299,49 @@ namespace Middleware.Controllers
                 return BadRequest();
             }
         }
+        [Route("api/somiod/{application_name}/{container_name}")]
+        [HttpGet]
+        public IHttpActionResult GetAllDataFromContainer(string application_name, string container_name)
+        {
+            // Verify if it has a header
+            if (!Request.Headers.Contains("somiod-discover"))
+            {
+                return BadRequest("Does not have data in header");
+            }
+
+            var discoverHeaderValue = Request.Headers.GetValues("somiod-discover")?.FirstOrDefault();
+
+            // Verify if the header is null or has the "data" 
+            if (string.IsNullOrEmpty(discoverHeaderValue) || !discoverHeaderValue.Equals("data", StringComparison.OrdinalIgnoreCase))
+            {
+                return Unauthorized();
+            }
+
+            List<Data> dataList;
+
+            try
+            {
+                dataList = DataHandler.GetAllDataFromContainer(application_name, container_name);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message == $"No container named {container_name} in application {application_name}")
+                {
+                    return NotFound();
+                }
+
+                return BadRequest("Could not retrieve data");
+            }
+
+            if (dataList == null || !dataList.Any())
+            {
+                return NotFound();
+            }
+
+            return Ok(dataList);
+        }
+
+
         [Route("api/somiod/{application_name}/{container_name}")]
         [HttpPost]
         public IHttpActionResult PostDataOrSubscription(string application_name, string container_name, [FromBody] XElement requestData)
@@ -339,7 +366,6 @@ namespace Middleware.Controllers
                     if (dataContent != null)
                     {
                         // Perform deserialization of Data model directly
-                        // Perform deserialization of Data model directly
                         Data data;
                         try
                         {
@@ -361,8 +387,10 @@ namespace Middleware.Controllers
 
                 case "subscription":
                     // Handle 'subscription'
-                    var subscriptionContent = requestData.Element("content");
-                    if (subscriptionContent != null)
+                    string name = requestData.Element("name")?.Value;
+                    string Event = requestData.Element("event")?.Value;
+                    string Endpoint = requestData.Element("endpoint")?.Value;
+                    if (name != null && Event != null && Endpoint != null)
                     {
                         // Perform deserialization of Subscription model directly
                         Subscription subscription;
@@ -370,10 +398,10 @@ namespace Middleware.Controllers
                         {
                             subscription = new Subscription
                             {
-                                Name = subscriptionContent.Element("name")?.Value,
-                                Event = subscriptionContent.Element("event")?.Value,
-                                Endpoint = subscriptionContent.Element("endpoint")?.Value
-                                // Add other properties based on your Subscription model
+                                Name = name,
+                                Event = Event,
+                                Endpoint = Endpoint
+                               
                             };
                             SubHandler.PostToDatabase(application_name, container_name, subscription);
                         }
@@ -382,8 +410,7 @@ namespace Middleware.Controllers
                             return BadRequest($"Error processing 'subscription': {ex.Message}");
                         }
 
-                        // Your logic for handling 'subscription'
-                        // ...
+                       
 
                         return Ok("Subscription processed successfully");
                     }
@@ -412,6 +439,30 @@ namespace Middleware.Controllers
             }
 
             return Ok("Deleted");
+        }
+        [Route("api/somiod/{application_name}/{container_name}/{subscription_name}")]
+        [HttpGet]
+        public IHttpActionResult GetSubFromDatabase(string application_name, string container_name, string subscription_name)
+        {
+           
+            Subscription sub = null;
+
+            try
+            {
+                sub = SubHandler.GetSubFromDatabase(application_name, container_name, subscription_name);
+
+                if (sub == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(sub);
+            }
+
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
     }
 }

@@ -24,13 +24,12 @@ namespace Middleware.Handler
                 // Remove Spaces from Name and Add "-"
                 subscriptionName = subscriptionName.Replace(" ", "-");
 
-                if (FindObjectInDatabase(application_name, container_name, subscriptionName) != null)
+                if (GetSubFromDatabase(application_name, container_name, subscriptionName) != null)
                 {
                     throw new Exception("A subscription named " + subscriptionName + " already exists in the module");
                 }
-
-                string insertCommand = "INSERT INTO Subscriptions VALUES (@name, @date, @parent, @event, @endpoint)";
-                SqlCommand command = new SqlCommand(insertCommand, connection);
+                string insertCmd = "INSERT INTO Subscription (name, creation_dt, parent, event, endpoint) VALUES  (@name, @date, @parent, @event, @endpoint)";
+                SqlCommand command = new SqlCommand(insertCmd, connection);
 
                 Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
                 if (container == null)
@@ -63,7 +62,7 @@ namespace Middleware.Handler
         public static void DeleteFromDatabase(string application_name, string container_name, string subscription_name)
         {
             // Find the subscription
-            Subscription subscription = FindObjectInDatabase(application_name, container_name, subscription_name);
+            Subscription subscription = GetSubFromDatabase(application_name, container_name, subscription_name);
             if (subscription == null)
             {
                 throw new Exception("Subscription not found");
@@ -72,7 +71,7 @@ namespace Middleware.Handler
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 // Set up the command to delete object from the database
-                string deleteCommand = "DELETE FROM Subscriptions WHERE Id = @id AND Parent = @parent";
+                string deleteCommand = "DELETE FROM Subscription WHERE Id = @id AND Parent = @parent";
                 SqlCommand command = new SqlCommand(deleteCommand, connection);
 
                 // Add the parameters for the object's Id and Parent
@@ -92,7 +91,7 @@ namespace Middleware.Handler
             }
         }
 
-        public static Subscription FindObjectInDatabase(string application_name, string container_name, string subscription_name)
+        public static Subscription GetSubFromDatabase(string application_name, string container_name, string subscription_name)
         {
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
@@ -104,7 +103,7 @@ namespace Middleware.Handler
                 }
 
                 // Set up the command to search for the object by name
-                string searchCommand = "SELECT * FROM Subscriptions WHERE Name = @Name and Parent = @Parent";
+                string searchCommand = "SELECT * FROM Subscription WHERE Name = @Name and Parent = @Parent";
                 SqlCommand command = new SqlCommand(searchCommand, connection);
                 command.Parameters.AddWithValue("@Name", subscription_name);
                 command.Parameters.AddWithValue("@Parent", container.Id);

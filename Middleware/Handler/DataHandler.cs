@@ -1,5 +1,6 @@
 ﻿using Middleware.Models;
 using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Net;
 using System.Text;
@@ -200,6 +201,50 @@ namespace Middleware.Handler
                 }
             }
         }
+        public static List<Data> GetAllDataFromContainer(string application_name, string container_name)
+        {
+            List<Data> dataList = new List<Data>();
+
+            using (SqlConnection connection = new SqlConnection(connStr))
+            {
+                Models.Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
+
+                if (container == null)
+                {
+                    throw new Exception($"No container named {container_name} in application {application_name}");
+                }
+
+                string searchCommand = "SELECT * FROM Data WHERE Parent = @Parent";
+                SqlCommand command = new SqlCommand(searchCommand, connection);
+                command.Parameters.AddWithValue("@Parent", container.Id);
+
+                try
+                {
+                    connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        Data data = new Data
+                        {
+                            Id = (int)reader["id"],
+                            Content = (string)reader["content"],
+                            Creation_dt = (DateTime)reader["creation_dt"],
+                            Parent = (int)reader["parent"]
+                        };
+
+                        dataList.Add(data);
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+
+            return dataList;
+        }
+
         public static void PublishDataToMosquitto(string application_name, string module_name, Data data, string eventMqt)
         {
             String domain = "127.0.0.1";
