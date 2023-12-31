@@ -16,9 +16,11 @@ namespace Middleware.Handler
         public static int PostToDatabase(Data data, string application_name, string container_name)
         {
             int idInserted = -1;
+            //Creates XML doc and adds the data to it
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(data.Content);
 
+            
             using (SqlConnection connection = new SqlConnection(connStr))
             {
                 string insertCmd = "INSERT INTO Data (content, creation_dt, parent) VALUES (@content, @creation_dt, @parent)";
@@ -31,13 +33,14 @@ namespace Middleware.Handler
                 command.Parameters.AddWithValue("content", content);
                 command.Parameters.AddWithValue("@creation_dt", DateTime.Now);
 
+                //Checks if the container exists or not 
                 Models.Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
 
                 if (container == null)
                 {
                     throw new Exception($"No container named {container_name} in application {application_name}");
                 }
-
+                // Adds the container ID to Parent ID
                 command.Parameters.AddWithValue("@parent", container.Id);
 
                 try
@@ -203,26 +206,29 @@ namespace Middleware.Handler
         }
         public static List<Data> GetAllDataFromContainer(string application_name, string container_name)
         {
+            // Creates a list for all data entries
             List<Data> dataList = new List<Data>();
-
+            
             using (SqlConnection connection = new SqlConnection(connStr))
             {
+                //Checks if container exists
                 Models.Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
 
                 if (container == null)
                 {
                     throw new Exception($"No container named {container_name} in application {application_name}");
                 }
-
+                //Gets all data from container
                 string searchCommand = "SELECT * FROM Data WHERE Parent = @Parent";
                 SqlCommand command = new SqlCommand(searchCommand, connection);
                 command.Parameters.AddWithValue("@Parent", container.Id);
 
                 try
                 {
+                    //Opens connection and executes the querry
                     connection.Open();
                     SqlDataReader reader = command.ExecuteReader();
-
+                    //Reads each data entrie
                     while (reader.Read())
                     {
                         Data data = new Data
@@ -232,7 +238,7 @@ namespace Middleware.Handler
                             Creation_dt = (DateTime)reader["creation_dt"],
                             Parent = (int)reader["parent"]
                         };
-
+                        //Add the entrie to the list
                         dataList.Add(data);
                     }
                 }
@@ -253,7 +259,7 @@ namespace Middleware.Handler
             mcClient.Connect(Guid.NewGuid().ToString());
             if (!mcClient.IsConnected)
             {
-                Console.WriteLine("Error connecting to message broker...");
+                Console.WriteLine("Error connecting to message broker");
                 return;
             }
 

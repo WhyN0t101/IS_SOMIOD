@@ -112,5 +112,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Middleware\Middleware.csproj">
+      <Project>{e079fede-95a2-44ba-be36-8ef339a53887}</Project>
+      <Name>Middleware</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

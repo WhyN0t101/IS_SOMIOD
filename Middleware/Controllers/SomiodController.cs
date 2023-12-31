@@ -184,15 +184,17 @@ namespace Middleware.Controllers
 
                 return Unauthorized();
             }
-
+            //Creates a list of containers
             IEnumerable<Models.Container> containers;
 
             try
             {
+                //Gets all containers and stores in the list
                 containers = ContainerHandler.GetAllContainers(application_name);
             }
             catch (System.Exception ex)
             {
+                //If the exception message is this. Reason - No app with name
                 if (ex.Message == "There is no application named  " + application_name)
                 {
                     return NotFound();
@@ -200,7 +202,7 @@ namespace Middleware.Controllers
 
                 return BadRequest("Couldnt not retrieve containers");
             }
-
+            //checks if containers is null else return it
             if (containers == null || !containers.Any())
             {
                 return NotFound();

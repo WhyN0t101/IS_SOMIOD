@@ -31,7 +31,6 @@ namespace TestAplication
                 }
 
                 MessageBox.Show(response.StatusCode.ToString());
-
                 return xDoc;
             }
             catch (Exception)
@@ -54,14 +53,14 @@ namespace TestAplication
                 {
                     MessageBox.Show("Resource does not exist");
                 }
-                else
-                {
-                    MessageBox.Show("Deleted");
-                }
+               
             }
             catch (Exception e)
             {
                 throw new Exception(e.Message);
+            }
+            finally {
+                MessageBox.Show("Deleted");
             }
         }
 
@@ -76,7 +75,7 @@ namespace TestAplication
                     Res_type = "application"
                 };
 
-                var request = new RestRequest("/api/somiod", Method.Post);
+                var request = new RestRequest(requestUri, Method.Post);
 
                 // Adds the message body to the response
                 request.AddObject(application);
@@ -112,7 +111,7 @@ namespace TestAplication
                 };
 
                 // Adds the message body to the response
-                request.AddObject(application);
+                request.AddXmlBody(application);
 
                 RestResponse response = client.Execute(request);
                 // Shows Status Code
@@ -120,20 +119,22 @@ namespace TestAplication
                 {
                     MessageBox.Show("Application does not exist");
                 }
-                else
-                {
-                    MessageBox.Show("Application updated");
-                }
+              
             }
             catch (Exception e)
             {
                 throw new Exception(e.Message);
             }
+            finally {
+              
+                    MessageBox.Show("Application updated");
+                
+            }
         }
 
 
   
-        static public void PostContainer(string requestURI, RestClient client, string applicationName, string ContainerName)
+        static public void PostContainer(string requestURI, RestClient client, string ContainerName)
         {
             try
             {
@@ -144,7 +145,7 @@ namespace TestAplication
                     Name = ContainerName,
                     Res_type = "container"
                 };
-                var request = new RestRequest("/api/somiod/" + applicationName, Method.Post);
+                var request = new RestRequest(requestURI, Method.Post);
 
                 // Adds the message body to the response
                 request.AddXmlBody(Container);
@@ -222,7 +223,7 @@ namespace TestAplication
         }
 
 
-        static public void PostData(string requestURI, RestClient client, string applicationName, string ContainerName, string dataContent)
+        static public void PostData(string requestURI, RestClient client, string dataContent)
         {
             try
             {
@@ -232,12 +233,11 @@ namespace TestAplication
                     Content = dataContent,
                     Res_type = "data"
                 };
-                var request = new RestRequest("/api/somiod/" + applicationName + "/" + ContainerName, Method.Post);
+
+                var request = new RestRequest(requestURI, Method.Post);
 
                 // Adds the message body to the response
                 request.AddXmlBody(data);
-
-
                 RestResponse response = client.Execute(request);
                 MessageBox.Show(response.Content);
             }
@@ -247,7 +247,7 @@ namespace TestAplication
             }
         }
 
-        static public void createSubscription(string requestURI, RestClient client, string applicationName, string ContainerName, string subscriptionName, string eventName, string endpoint)
+        static public void PostSubscription(string requestURI, RestClient client, string subscriptionName, string eventName, string endpoint)
         {
             try
             {
@@ -261,10 +261,10 @@ namespace TestAplication
                 };
 
 
-                var request = new RestRequest("/api/somiod/" + applicationName + "/" + ContainerName, Method.Post);
+                var request = new RestRequest(requestURI, Method.Post);
 
                 // Adds the message body to the response
-                request.AddJsonBody(subscription);
+                request.AddXmlBody(subscription);
 
 
                 RestResponse response = client.Execute(request);
@@ -307,7 +307,6 @@ namespace TestAplication
             }
         }
 
-        //--------------------- END OF SUBSCRIPTION ---------------------
 
     }
 }

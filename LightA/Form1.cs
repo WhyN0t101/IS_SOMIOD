@@ -38,25 +38,16 @@ namespace LightA
         private void buttonCreate_Click(object sender, EventArgs e)
         {
             string applicationName = textBoxApplicationName.Text;
-            if (applicationName.Equals(""))
-            {
-                MessageBox.Show("Application name cannot be empty");
-                return;
-            }
-
             string containerName = textBoxContainerName.Text;
-            if (containerName.Equals(""))
+            string subscriptionName = textBoxSubscriptionName.Text;
+
+            if (applicationName.Equals("") && containerName.Equals("") && subscriptionName.Equals(""))
             {
-                MessageBox.Show("Container name cannot be empty");
+                MessageBox.Show("Please fill out application, container and subcription name");
                 return;
             }
 
-            string subscriptionName = textBoxSubscriptionName.Text;
-            if (subscriptionName.Equals(""))
-            {
-                MessageBox.Show("Subscription name cannot be empty");
-                return;
-            }
         }
+
     }
 }

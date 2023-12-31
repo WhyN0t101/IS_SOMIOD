@@ -44,6 +44,7 @@
             this.onButton.TabIndex = 0;
             this.onButton.Text = "ON";
             this.onButton.UseVisualStyleBackColor = true;
+            this.onButton.Click += new System.EventHandler(this.onButton_Click);
             // 
             // offButton
             // 
@@ -53,6 +54,7 @@
             this.offButton.TabIndex = 1;
             this.offButton.Text = "OFF";
             this.offButton.UseVisualStyleBackColor = true;
+            this.offButton.Click += new System.EventHandler(this.offButton_Click);
             // 
             // label1
             // 

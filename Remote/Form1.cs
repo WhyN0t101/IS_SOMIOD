@@ -60,7 +60,7 @@ namespace Remote
         private void GetContainersFromApplication()
         {
             containerComboBox.Items.Clear();
-            string  applicationSelected = appComboBox.SelectedItem.ToString();
+            string applicationSelected = appComboBox.SelectedItem.ToString();
             // Creates and Executes a GET request
             RestRequest request = new RestRequest("/api/somiod/" + applicationSelected + "/containers", Method.Get);
             request.AddHeader("somiod-discover", "container");
@@ -107,6 +107,72 @@ namespace Remote
         private void appComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             GetContainersFromApplication();
+        }
+
+        private void onButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+            
+
+                if (appComboBox.SelectedItem == null && containerComboBox.SelectedItem == null)
+                {
+                    MessageBox.Show("Please select an application and container first");
+                    return;
+                }
+                // Creates the Object Application
+                Middleware.Models.Data data = new Middleware.Models.Data
+                {
+                    Content = "ON",
+                    Res_type = "data"
+                };
+
+                string application = appComboBox.SelectedItem.ToString();
+                string container = containerComboBox.SelectedItem.ToString();
+                var request = new RestRequest("/api/somiod/" + application + "/" + container, Method.Post);
+
+                // Adds the message body to the response
+                request.AddXmlBody(data);
+
+                RestResponse response = client.Execute(request);
+            }
+            catch (Exception)
+            {
+                throw new Exception("Error Connection to Server");
+            }
+        }
+
+        private void offButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+           
+
+                if (appComboBox.SelectedItem == null && containerComboBox.SelectedItem == null)
+                {
+                    MessageBox.Show("Please select an application and container first");
+                    return;
+                }
+                // Creates the Object Application
+                Middleware.Models.Data data = new Middleware.Models.Data
+                {
+                    Content = "OFF",
+                    Res_type = "data"
+                };
+
+                string application = appComboBox.SelectedItem.ToString();
+                string container = containerComboBox.SelectedItem.ToString();
+                var request = new RestRequest("/api/somiod/" + application + "/" + container, Method.Post);
+
+                // Adds the message body to the response
+                request.AddXmlBody(data);
+
+                RestResponse response = client.Execute(request);
+            }
+            catch (Exception)
+            {
+                throw new Exception("Error Connection to Server");
+            }
         }
     }
 }

@@ -182,7 +182,7 @@ namespace TestAplication
             string requestURI = "/api/somiod/" + applicationName;
             try
             {
-                RequestsHandler.PostContainer(requestURI, client, applicationName, containerName);
+                RequestsHandler.PostContainer(requestURI, client, containerName);
             }
             catch (Exception ex)
             {
@@ -249,7 +249,7 @@ namespace TestAplication
             string requestURI = "/api/somiod/" + applicationName + "/" + containerName;
             try
             {
-                RequestsHandler.PostData(requestURI, client, applicationName, containerName, dataContent);
+                RequestsHandler.PostData(requestURI, client, dataContent);
             }
             catch (Exception ex)
             {
