@@ -222,15 +222,13 @@ namespace Middleware.Handler
                         // Check if the object was found
                         while (readerData.Read())
                         {
-
                             Data DataObj = new Data
                             {
-                                Id = (int)reader["id"],
-                                Content = (string)reader["content"],
-                                Creation_dt = (DateTime)reader["creation_dt"],
+                                Id = (int)readerData["id"],
+                                Content = (string)readerData["content"],
+                                Creation_dt = (DateTime)readerData["creation_dt"],
                                 Res_type = "data",
-                                Parent = (int)reader["parent"]
-
+                                Parent = (int)readerData["parent"]
                             };
 
                             dataArray.Add(DataObj);

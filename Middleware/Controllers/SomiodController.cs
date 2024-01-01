@@ -374,7 +374,7 @@ namespace Middleware.Controllers
                             // Updated to handle the case where PostToDatabase returns an ID
                             int idInserted = DataHandler.PostToDatabase(new Data { Content = dataContent }, application_name, container_name);
                             data = DataHandler.GetDataFromDatabase(application_name, container_name, idInserted);
-                            //DataHandler.PublishDataToMosquitto(application_name, container_name, data, "creation");
+                            DataHandler.PublishDataToMosquitto(application_name, container_name, data, "creation");
 
                         }
                         catch (Exception ex)
@@ -433,7 +433,23 @@ namespace Middleware.Controllers
             {
                 //TO DO MOSQUITTO
                 DataHandler.DeleteFromDatabase(application_name, container_name, data_id);
-               //DataHandler.PublishDataToMosquitto(application_name, container_name, new Data(), "deletion");
+               DataHandler.PublishDataToMosquitto(application_name, container_name, new Data(), "deletion");
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok("Deleted");
+        }
+        [Route("api/somiod/{application_name}/{container_name}/{subscription_name}")]
+        [HttpDelete]
+        public IHttpActionResult DeleteSub(string application_name, string container_name, string subscription_name)
+        {
+            try
+            {
+                //TO DO MOSQUITTO
+                SubHandler.DeleteFromDatabase(application_name, container_name, subscription_name);
             }
             catch (System.Exception ex)
             {

@@ -1,16 +1,8 @@
 ﻿using RestSharp;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml;
 using System.Xml.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
 
 namespace TestAplication
 {
@@ -113,7 +105,7 @@ namespace TestAplication
             }
 
             // Makes the Delete Request
-            string requestUri = $"/api/somiod/{applicationName}";
+            string requestUri = "/api/somiod/" + applicationName;
 
             try
             {
@@ -280,11 +272,58 @@ namespace TestAplication
             }
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
+ 
 
+        private void buttonPOSTSubscription_Click(object sender, EventArgs e)
+        {
+            string applicationName = textBoxApplicationNameSubscription.Text;
+            string containerName = textBoxContainerNameSubscription.Text;
+            string subName = textBoxSubscriptionNamePOST.Text;
+            string subEvent = comboBoxSubscriptionEvents.SelectedItem.ToString();
+            MessageBox.Show(subEvent);
+            string subEndpoint = textBoxEndPoint.Text;
+
+            if (string.IsNullOrEmpty(applicationName) || string.IsNullOrEmpty(containerName) || string.IsNullOrEmpty(subName) || string.IsNullOrEmpty(subEvent) || string.IsNullOrEmpty(subEndpoint))
+            {
+                MessageBox.Show("Please fill all the information");
+                return;
+            }
+            // Makes the Post Request
+            string requestURI = "/api/somiod/" + applicationName + "/" + containerName;
+            try
+            {
+                RequestsHandler.PostSubscription(requestURI, client,subName,subEvent, subEndpoint);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
-        
+        private void buttonDELETESubscription_Click(object sender, EventArgs e)
+        {
+            string applicationName = textBoxApplicationNameSubscription.Text;
+            string containerName = textBoxContainerNameSubscription.Text;
+            string subName = textBoxSubscriptionNamePOST.Text;
+
+
+            if (string.IsNullOrEmpty(applicationName) || string.IsNullOrEmpty(containerName) || string.IsNullOrEmpty(subName))
+            {
+                MessageBox.Show("Please fill all the information");
+                return;
+            }
+            // Makes the Delete Request
+            string requestURI = "/api/somiod/" + applicationName + "/" + containerName + "/" + subName;
+            try
+            {
+                RequestsHandler.DeleteSubscription(requestURI, client);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+
     }
 }

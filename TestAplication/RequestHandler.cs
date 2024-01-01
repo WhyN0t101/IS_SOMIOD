@@ -53,15 +53,14 @@ namespace TestAplication
                 {
                     MessageBox.Show("Resource does not exist");
                 }
-               
+                MessageBox.Show("Deleted");
+
             }
             catch (Exception e)
             {
                 throw new Exception(e.Message);
             }
-            finally {
-                MessageBox.Show("Deleted");
-            }
+         
         }
 
         static public void PostApplication(string requestUri, RestClient client, string applicationName)
@@ -119,17 +118,15 @@ namespace TestAplication
                 {
                     MessageBox.Show("Application does not exist");
                 }
-              
+                MessageBox.Show("Application updated");
+
+
             }
             catch (Exception e)
             {
                 throw new Exception(e.Message);
             }
-            finally {
-              
-                    MessageBox.Show("Application updated");
-                
-            }
+            
         }
 
 
@@ -284,6 +281,29 @@ namespace TestAplication
         }
 
         static public void DeleteData(string requestUri, RestClient client)
+        {
+            try
+            {
+                // Creates and Executes a Delete request
+                RestRequest request = new RestRequest(requestUri, Method.Delete);
+                RestResponse response = client.Execute(request);
+
+                // Shows Status Code
+                if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    MessageBox.Show("Resource does not exist");
+                }
+                else
+                {
+                    MessageBox.Show("Deleted");
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        static public void DeleteSubscription(string requestUri, RestClient client)
         {
             try
             {

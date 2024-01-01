@@ -20,7 +20,7 @@ namespace Remote
         private void GetApplications()
         {
             appComboBox.Items.Clear();
-
+    
             // Creates and Executes a GET request
             RestRequest request = new RestRequest("/api/somiod/", Method.Get);
             request.AddHeader("somiod-discover", "application");
