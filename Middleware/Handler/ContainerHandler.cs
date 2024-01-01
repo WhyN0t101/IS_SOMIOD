@@ -262,9 +262,10 @@ namespace Middleware.Handler
 
                 if (GetContainerInDatabase(application_name, newContainerName) != null)
                 {
-                    throw new Exception("There are already exists a container named " + newContainerName + " in the application " + application_name);
+                    string baseName = "container";
+                    string uniqueName = $"{baseName}_{DateTime.Now}";
+                    newContainerName = uniqueName.Replace(" ", "_");
                 }
-
 
                 // Set up the command to insert the object into the database
                 string insertCommand = "INSERT INTO Container VALUES (@name, @date, @parent)";

@@ -26,7 +26,9 @@ namespace Middleware.Handler
 
                 if (GetSubFromDatabase(application_name, container_name, subscriptionName) != null)
                 {
-                    throw new Exception("A subscription named " + subscriptionName + " already exists in the module");
+                    string baseName = "subcription";
+                    string uniqueName = $"{baseName}_{DateTime.Now}";
+                    subscriptionName = uniqueName.Replace(" ", "_");
                 }
                 string insertCmd = "INSERT INTO Subscription (name, creation_dt, parent, event, endpoint) VALUES  (@name, @date, @parent, @event, @endpoint)";
                 SqlCommand command = new SqlCommand(insertCmd, connection);

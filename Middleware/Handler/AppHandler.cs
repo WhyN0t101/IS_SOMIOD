@@ -98,7 +98,9 @@ namespace Middleware.Handler
             //Checks if the application already exists
             if (GetApplicationFromDatabase(newApplicationName) != null)
             {
-                throw new Exception("There is already an existing application named " + newApplicationName + " in the database.");
+                string baseName = "application";
+                string uniqueName = $"{baseName}_{DateTime.Now}";
+                newApplicationName = uniqueName.Replace(" ", "_");
             }
             //Create SQL connection to DB and creates a SQL querry string
             using (SqlConnection connection = new SqlConnection(connStr))
