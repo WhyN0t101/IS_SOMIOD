@@ -251,10 +251,9 @@ namespace Middleware.Handler
             return dataList;
         }
 
-        public static void PublishDataToMosquitto(string application_name, string module_name, Data data, string eventMqt)
+        public static void PublishDataToMosquitto(string application_name, string container_name, Data data, string eventMqt)
         {
-            String domain = "127.0.0.1";
-            MqttClient mcClient = new MqttClient(IPAddress.Parse(domain));
+            MqttClient mcClient = new MqttClient("127.0.0.1");
 
             mcClient.Connect(Guid.NewGuid().ToString());
             if (!mcClient.IsConnected)
@@ -263,7 +262,7 @@ namespace Middleware.Handler
                 return;
             }
 
-            string topic = application_name + "/" + module_name;
+            string topic = application_name + "/" + container_name;
             mcClient.Publish(topic, Encoding.UTF8.GetBytes(eventMqt + ";" + data.Content));
         }
     }
