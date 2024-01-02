@@ -25,7 +25,7 @@ CREATE TABLE [dbo].[Data] (
 );
 
 CREATE TABLE [dbo].[Subscription] (
-    [Id]          INT          NOT NULL,
+    [Id]          INT          IDENTITY (1, 1) NOT NULL,
     [Name]        VARCHAR (50) NOT NULL,
     [Creation_dt] DATETIME     NOT NULL,
     [Parent]      INT          NOT NULL,

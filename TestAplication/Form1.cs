@@ -22,10 +22,16 @@ namespace TestAplication
 
             XDocument xDoc = RequestsHandler.GetObject(requestUri, client,"application");
 
-            if (xDoc != null)
+            if (xDoc == null)
+            {
+                MessageBox.Show("No Applications were found");
+            }
+            else
             {
                 TextBoxListAllApplications.Text = xDoc.ToString();
             }
+          
+
         }
 
         private void buttonGetApplication_Click(object sender, EventArgs e)
@@ -42,10 +48,16 @@ namespace TestAplication
             string requestUri = $"/api/somiod/{applicationName}";
             XDocument xDoc = RequestsHandler.GetObject(requestUri, client,"application");
 
-            if (xDoc != null)
+
+            if (xDoc == null)
+            {
+                MessageBox.Show("No Application was found");
+            }
+            else
             {
                 richTextBox1.Text = xDoc.ToString();
             }
+           
         }
 
         private void buttonPOSTApplication_Click(object sender, EventArgs e)
@@ -132,10 +144,10 @@ namespace TestAplication
 
             if (xDoc == null)
             {
-                return;
+                MessageBox.Show("No containers were found");
             }
-
-            richTextBoxListContainers.Text = xDoc.ToString();
+            else { richTextBoxListContainers.Text = xDoc.ToString();}
+          
         }
 
         private void buttonGetContainer_Click(object sender, EventArgs e)
@@ -153,10 +165,12 @@ namespace TestAplication
 
             if (xDoc == null)
             {
-                return;
-            }
+                 MessageBox.Show("No container was found");
 
-            richTextBoxSpecificContainer.Text = xDoc.ToString();
+            }
+            else {
+                richTextBoxSpecificContainer.Text = xDoc.ToString();
+            }
         }
 
         private void buttonPOSTContainer_Click(object sender, EventArgs e)

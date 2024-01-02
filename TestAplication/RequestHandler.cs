@@ -35,7 +35,7 @@ namespace TestAplication
             }
             catch (Exception)
             {
-                MessageBox.Show("Application does not exist");
+                MessageBox.Show( res_type +  " does not exist");
                 return null;
             }
         }

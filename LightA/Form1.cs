@@ -73,13 +73,20 @@ namespace LightA
                 string requestName = $"/api/somiod/{applicationName}";
                 string requestContainer = "/api/somiod/" + applicationName + "/container/" + containerName;
 
-                if (GetObject(requestName,client,"application") == null || GetObject(requestContainer, client, "container") == null)
+                XDocument applicationExists = GetObject(requestName, client, "application");
+                XDocument containerExists = GetObject(requestContainer, client, "container");
+                if (applicationExists == null)
                 {
                     Middleware.Models.Application appCreated = createApplication(applicationName);
                     if (appCreated != null)
                     {
                         applicationName = appCreated.Name;
                     }
+
+
+                }
+                if (containerExists == null)
+                {
                     Middleware.Models.Container containerCreated = createContainer(containerName, applicationName);
                     if (containerCreated != null)
                     {
@@ -95,7 +102,14 @@ namespace LightA
                     connectToMosquitto(topic);
                     aContainer = containerName;
                     eventMqt = subscriptionEventType;
-                    MessageBox.Show("Created and Connected to Server Successfully");
+                    if (applicationExists != null || containerExists != null)
+                    {
+                        MessageBox.Show("Application  or Container already exists and connected");
+                    }
+                    else
+                    {
+                        MessageBox.Show("Created and Connected to Server Successfully");
+                    }
                 }
                 else
                 {

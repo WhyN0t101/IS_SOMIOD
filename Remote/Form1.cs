@@ -115,7 +115,7 @@ namespace Remote
             {
             
 
-                if (appComboBox.SelectedItem == null && containerComboBox.SelectedItem == null)
+                if (appComboBox.SelectedItem == null || containerComboBox.SelectedItem == null)
                 {
                     MessageBox.Show("Please select an application and container first");
                     return;
@@ -126,7 +126,7 @@ namespace Remote
                     Content = "ON",
                     Res_type = "data"
                 };
-
+                
                 string application = appComboBox.SelectedItem.ToString();
                 string container = containerComboBox.SelectedItem.ToString();
                 var request = new RestRequest("/api/somiod/" + application + "/" + container, Method.Post);
@@ -148,7 +148,7 @@ namespace Remote
             {
            
 
-                if (appComboBox.SelectedItem == null && containerComboBox.SelectedItem == null)
+                if (appComboBox.SelectedItem == null || containerComboBox.SelectedItem == null)
                 {
                     MessageBox.Show("Please select an application and container first");
                     return;
