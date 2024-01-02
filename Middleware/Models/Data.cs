@@ -8,6 +8,9 @@ namespace Middleware.Models
     {
         [XmlElement("id")]
         public int Id { get; set; }
+
+        [XmlElement("name")]
+        public string Name { get; set; }
         [XmlElement("content")]
         public string Content { get; set; }
         [XmlElement("creation_dt")]

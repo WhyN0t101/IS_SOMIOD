@@ -13,39 +13,35 @@ namespace Middleware.Handler
     {
         static string connStr = Properties.Settings.Default.connStr;
 
-        public static int PostToDatabase(Data data, string application_name, string container_name)
+        public static int PostToDatabase(Data data, string application_name, string container_name,string name)
         {
             int idInserted = -1;
-            //Creates XML doc and adds the data to it
+
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(data.Content);
-
-            
             using (SqlConnection connection = new SqlConnection(connStr))
             {
-                string insertCmd = "INSERT INTO Data (content, creation_dt, parent) VALUES (@content, @creation_dt, @parent)";
+                string insertCmd = "INSERT INTO Data (name, content, creation_dt, parent) VALUES (@name, @content, @creation_dt, @parent)";
                 SqlCommand command = new SqlCommand(insertCmd, connection);
 
-                // Extracted content from XML
                 string content = doc.SelectSingleNode("//content").InnerText;
 
-                // Add parameters for the object's properties
-                command.Parameters.AddWithValue("content", content);
+
+                command.Parameters.AddWithValue("@name", name);
+                command.Parameters.AddWithValue("@content", content);
                 command.Parameters.AddWithValue("@creation_dt", DateTime.Now);
 
-                //Checks if the container exists or not 
                 Models.Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
 
                 if (container == null)
                 {
                     throw new Exception($"No container named {container_name} in application {application_name}");
                 }
-                // Adds the container ID to Parent ID
+
                 command.Parameters.AddWithValue("@parent", container.Id);
 
                 try
                 {
-                    // Open the database connection and execute the insert command
                     connection.Open();
                     int rowsInserted = command.ExecuteNonQuery();
 
@@ -54,18 +50,17 @@ namespace Middleware.Handler
                         throw new Exception("Error inserting object into the database");
                     }
 
-                    // Get the last inserted data record
                     Data newData = GetLastInsertedInDatabaseByContainer(container.Id);
 
                     if (newData == null)
                     {
                         throw new Exception("Can't find newly created data record in the database");
                     }
+
                     idInserted = newData.Id;
                 }
                 catch (SqlException ex)
                 {
-                    // Handle any errors that may have occurred
                     Console.WriteLine($"Error inserting object into the database: {ex.Message}");
                     throw new Exception(ex.Message);
                 }
@@ -156,6 +151,7 @@ namespace Middleware.Handler
                         Data data = new Data
                         {
                             Id = (int)reader["id"],
+                            Name = (string)reader["name"],
                             Content = (string)reader["content"],
                             Creation_dt = (DateTime)reader["creation_dt"],
                             Parent = (int)reader["parent"]
@@ -175,10 +171,10 @@ namespace Middleware.Handler
                 }
             }
         }
-        public static void DeleteFromDatabase(string application_name, string container_name, int data_id)
+        public static void DeleteFromDatabase(string application_name, string container_name, string data_name)
         {
             // Find the data
-            Data obj = GetDataFromDatabase(application_name, container_name, data_id);
+            Data obj = GetDataByName(application_name, container_name, data_name);
             if (obj == null)
             {
                 throw new Exception("Data Not Found");
@@ -188,10 +184,10 @@ namespace Middleware.Handler
             using (SqlConnection connection = new SqlConnection(connStr))
             {
                 // Set up the command to delete object from the database
-                string insertCommand = "DELETE FROM Data WHERE Id = @Id";
+                string insertCommand = "DELETE FROM Data WHERE name = @Name";
                 SqlCommand command = new SqlCommand(insertCommand, connection);
 
-                command.Parameters.AddWithValue("@Id", data_id);
+                command.Parameters.AddWithValue("@Name", data_name);
 
                 try
                 {
@@ -234,6 +230,7 @@ namespace Middleware.Handler
                         Data data = new Data
                         {
                             Id = (int)reader["id"],
+                            Name= (string)reader["name"],   
                             Content = (string)reader["content"],
                             Creation_dt = (DateTime)reader["creation_dt"],
                             Parent = (int)reader["parent"]
@@ -249,6 +246,57 @@ namespace Middleware.Handler
             }
 
             return dataList;
+        }
+        public static Data GetDataByName(string application_name, string container_name, string data_name)
+        {
+            using (SqlConnection connection = new SqlConnection(connStr))
+            {
+                Application application = AppHandler.GetApplicationFromDatabase(application_name);
+
+                if (application == null)
+                {
+                    return null;
+                }
+
+                Models.Container container = ContainerHandler.GetContainerInDatabase(application.Name, container_name);
+
+                if (container == null)
+                {
+                    return null;
+                }
+
+                string searchCommand = "SELECT * FROM Data WHERE name = @name and Parent = @Parent";
+                SqlCommand command = new SqlCommand(searchCommand, connection);
+                command.Parameters.AddWithValue("@name", data_name);
+                command.Parameters.AddWithValue("@Parent", container.Id);
+
+                try
+                {
+                    connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+                        Data data = new Data
+                        {
+                            Id = (int)reader["id"],
+                            Name = (string)reader["name"],
+                            Content = (string)reader["content"],
+                            Creation_dt = (DateTime)reader["creation_dt"],
+                            Parent = (int)reader["parent"]
+                        };
+                        return data;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+            }
         }
 
         public static void PublishDataToMosquitto(string application_name, string container_name, Data data, string eventMqt)

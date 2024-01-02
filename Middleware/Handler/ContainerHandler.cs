@@ -69,6 +69,7 @@ namespace Middleware.Handler
                                     Data dataObj = new Data
                                     {
                                         Id = (int)readerData["id"],
+                                        Name= (string)readerData["name"],
                                         Content = (string)readerData["content"],
                                         Creation_dt = (DateTime)readerData["creation_dt"],
                                         Res_type = "data",
@@ -154,6 +155,7 @@ namespace Middleware.Handler
                                     Data dataObject = new Data
                                     {
                                         Id = (int)dataReader["id"],
+                                        Name = (string)(dataReader["name"]),
                                         Content = (string)dataReader["content"],
                                         Creation_dt = (DateTime)dataReader["creation_dt"],
                                         Res_type = "data",

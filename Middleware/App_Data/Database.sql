@@ -17,6 +17,7 @@ CREATE TABLE [dbo].[Container] (
 
 CREATE TABLE [dbo].[Data] (
     [Id]          INT          IDENTITY (1, 1) NOT NULL,
+    [Name]        VARCHAR (50) NOT NULL,
     [Content]     VARCHAR (150) NOT NULL,
     [Creation_dt] DATETIME     NOT NULL,
     [Parent]      INT          NOT NULL,

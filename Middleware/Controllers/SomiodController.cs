@@ -279,14 +279,13 @@ namespace Middleware.Controllers
                 return BadRequest();
             }
         }
-
-        [Route("api/somiod/{application_name}/{container_name}/data/{data_id}")]
+        [Route("api/somiod/{application_name}/{container_name}/data/{data_name}")]
         [HttpGet]
-        public IHttpActionResult GetDataFromContainer(string application_name, string container_name, int data_id)
+        public IHttpActionResult GetDataFromContainer(string application_name, string container_name, string data_name)
         {
             try
             {
-                Data data = DataHandler.GetDataFromDatabase(application_name, container_name, data_id);
+                Data data = DataHandler.GetDataByName(application_name, container_name, data_name);
 
                 if (data == null)
                 {
@@ -301,6 +300,7 @@ namespace Middleware.Controllers
                 return BadRequest();
             }
         }
+
         [Route("api/somiod/{application_name}/{container_name}")]
         [HttpGet]
         public IHttpActionResult GetAllDataFromContainer(string application_name, string container_name)
@@ -365,6 +365,15 @@ namespace Middleware.Controllers
                 case "data":
                     // Handle 'data'
                     var dataContent = requestData.Element("content").ToString();
+                    string dataName = requestData.Element("name")?.Value;
+
+                    if (string.IsNullOrEmpty(dataName))
+                    {
+                        string baseName = "data";
+                        string uniqueName = $"{baseName}_{DateTime.Now.Ticks}";
+                        dataName = uniqueName.Replace(" ", "_");
+                    }
+
                     if (dataContent != null)
                     {
                         // Perform deserialization of Data model directly
@@ -372,7 +381,7 @@ namespace Middleware.Controllers
                         try
                         {
                             // Updated to handle the case where PostToDatabase returns an ID
-                            int idInserted = DataHandler.PostToDatabase(new Data { Content = dataContent }, application_name, container_name);
+                            int idInserted = DataHandler.PostToDatabase(new Data { Content = dataContent }, application_name, container_name, dataName);
                             data = DataHandler.GetDataFromDatabase(application_name, container_name, idInserted);
                             DataHandler.PublishDataToMosquitto(application_name, container_name, data, "creation");
 
@@ -425,14 +434,14 @@ namespace Middleware.Controllers
             return BadRequest("Invalid or missing content for the specified 'type'.");
         }
 
-        [Route("api/somiod/{application_name}/{container_name}/data/{data_id}")]
+        [Route("api/somiod/{application_name}/{container_name}/data/{data_name}")]
         [HttpDelete]
-        public IHttpActionResult DeleteData(string application_name, string container_name, int data_id)
+        public IHttpActionResult DeleteData(string application_name, string container_name,string data_name)
         {
             try
             {
                 //TO DO MOSQUITTO
-                DataHandler.DeleteFromDatabase(application_name, container_name, data_id);
+                DataHandler.DeleteFromDatabase(application_name, container_name, data_name);
                DataHandler.PublishDataToMosquitto(application_name, container_name, new Data(), "deletion");
             }
             catch (System.Exception ex)

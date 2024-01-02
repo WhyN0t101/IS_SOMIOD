@@ -96,7 +96,7 @@
             // 
             this.textBoxSubscriptionEndPoint.BackColor = System.Drawing.SystemColors.Window;
             this.textBoxSubscriptionEndPoint.Location = new System.Drawing.Point(189, 146);
-            this.textBoxSubscriptionEndPoint.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBoxSubscriptionEndPoint.Margin = new System.Windows.Forms.Padding(4);
             this.textBoxSubscriptionEndPoint.Name = "textBoxSubscriptionEndPoint";
             this.textBoxSubscriptionEndPoint.Size = new System.Drawing.Size(175, 22);
             this.textBoxSubscriptionEndPoint.TabIndex = 19;
@@ -109,7 +109,7 @@
             "deletion",
             "creation and deletion"});
             this.comboBoxEventType.Location = new System.Drawing.Point(189, 112);
-            this.comboBoxEventType.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.comboBoxEventType.Margin = new System.Windows.Forms.Padding(4);
             this.comboBoxEventType.Name = "comboBoxEventType";
             this.comboBoxEventType.Size = new System.Drawing.Size(175, 24);
             this.comboBoxEventType.TabIndex = 18;
@@ -118,7 +118,7 @@
             // 
             this.textBoxSubscriptionName.BackColor = System.Drawing.SystemColors.Window;
             this.textBoxSubscriptionName.Location = new System.Drawing.Point(189, 81);
-            this.textBoxSubscriptionName.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBoxSubscriptionName.Margin = new System.Windows.Forms.Padding(4);
             this.textBoxSubscriptionName.Name = "textBoxSubscriptionName";
             this.textBoxSubscriptionName.Size = new System.Drawing.Size(175, 22);
             this.textBoxSubscriptionName.TabIndex = 17;
@@ -126,7 +126,7 @@
             // buttonCreate
             // 
             this.buttonCreate.Location = new System.Drawing.Point(273, 180);
-            this.buttonCreate.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonCreate.Margin = new System.Windows.Forms.Padding(4);
             this.buttonCreate.Name = "buttonCreate";
             this.buttonCreate.Size = new System.Drawing.Size(92, 28);
             this.buttonCreate.TabIndex = 16;
@@ -138,7 +138,7 @@
             // 
             this.textBoxContainerName.BackColor = System.Drawing.SystemColors.Window;
             this.textBoxContainerName.Location = new System.Drawing.Point(189, 49);
-            this.textBoxContainerName.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBoxContainerName.Margin = new System.Windows.Forms.Padding(4);
             this.textBoxContainerName.Name = "textBoxContainerName";
             this.textBoxContainerName.Size = new System.Drawing.Size(175, 22);
             this.textBoxContainerName.TabIndex = 15;
@@ -147,7 +147,7 @@
             // 
             this.richTextBoxLightBulb.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.richTextBoxLightBulb.Location = new System.Drawing.Point(21, 215);
-            this.richTextBoxLightBulb.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.richTextBoxLightBulb.Margin = new System.Windows.Forms.Padding(4);
             this.richTextBoxLightBulb.Name = "richTextBoxLightBulb";
             this.richTextBoxLightBulb.Size = new System.Drawing.Size(187, 152);
             this.richTextBoxLightBulb.TabIndex = 14;
@@ -157,7 +157,7 @@
             // 
             this.textBoxApplicationName.BackColor = System.Drawing.SystemColors.Window;
             this.textBoxApplicationName.Location = new System.Drawing.Point(189, 17);
-            this.textBoxApplicationName.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBoxApplicationName.Margin = new System.Windows.Forms.Padding(4);
             this.textBoxApplicationName.Name = "textBoxApplicationName";
             this.textBoxApplicationName.Size = new System.Drawing.Size(175, 22);
             this.textBoxApplicationName.TabIndex = 13;
@@ -180,7 +180,7 @@
             this.Controls.Add(this.textBoxContainerName);
             this.Controls.Add(this.richTextBoxLightBulb);
             this.Controls.Add(this.textBoxApplicationName);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "Form1";
             this.Text = "Light A";
             this.Load += new System.EventHandler(this.Form1_Load);

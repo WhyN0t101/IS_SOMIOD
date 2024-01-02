@@ -99,7 +99,7 @@ namespace Middleware.Handler
             if (GetApplicationFromDatabase(newApplicationName) != null)
             {
                 string baseName = "application";
-                string uniqueName = $"{baseName}_{DateTime.Now}";
+                string uniqueName = $"{baseName}_{DateTime.Now.Ticks}";
                 newApplicationName = uniqueName.Replace(" ", "_");
             }
             //Create SQL connection to DB and creates a SQL querry string

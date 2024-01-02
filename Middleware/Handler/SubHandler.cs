@@ -27,7 +27,7 @@ namespace Middleware.Handler
                 if (GetSubFromDatabase(application_name, container_name, subscriptionName) != null)
                 {
                     string baseName = "subcription";
-                    string uniqueName = $"{baseName}_{DateTime.Now}";
+                    string uniqueName = $"{baseName}_{DateTime.Now.Ticks}";
                     subscriptionName = uniqueName.Replace(" ", "_");
                 }
                 string insertCmd = "INSERT INTO Subscription (name, creation_dt, parent, event, endpoint) VALUES  (@name, @date, @parent, @event, @endpoint)";
