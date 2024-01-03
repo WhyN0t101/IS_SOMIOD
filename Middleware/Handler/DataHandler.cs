@@ -378,7 +378,7 @@ namespace Middleware.Handler
             mcClient.Publish(topic, Encoding.UTF8.GetBytes(eventMqt + ";" + data.Content));
 
             // Disconnect from the MQTT broker
-            mqttClient.Disconnect();
+            mcClient.Disconnect();
         }
     }
 }
