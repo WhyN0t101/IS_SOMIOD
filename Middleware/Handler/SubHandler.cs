@@ -27,36 +27,37 @@ namespace Middleware.Handler
                 if (GetSubFromDatabase(application_name, container_name, subscriptionName) != null)
                 {
                     string baseName = "subcription";
-                    string uniqueName = $"{baseName}_{DateTime.Now.Ticks}";
-                    subscriptionName = uniqueName.Replace(" ", "_");
+                    subscriptionName = $"{baseName}_{DateTime.Now.Ticks}".Replace(" ", "_");
                 }
                 string insertCmd = "INSERT INTO Subscription (name, creation_dt, parent, event, endpoint) VALUES  (@name, @date, @parent, @event, @endpoint)";
-                SqlCommand command = new SqlCommand(insertCmd, connection);
 
-                Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
-                if (container == null)
+                using (SqlCommand command = new SqlCommand(insertCmd, connection))
                 {
-                    throw new Exception($"Module '{container_name}' from Application '{application_name}' does not exist");
-                }
+                    Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
+                    if (container == null)
+                    {
+                        throw new Exception($"Container '{container_name}' from Application '{application_name}' does not exist");
+                    }
 
-                // Add the parameters for the object's name and value
-                command.Parameters.AddWithValue("@name", subscriptionName);
-                command.Parameters.AddWithValue("@date", date);
-                command.Parameters.AddWithValue("@parent", container.Id);
-                command.Parameters.AddWithValue("@event", subscription.Event);
-                command.Parameters.AddWithValue("@endpoint", subscription.Endpoint);
+                    // Add the parameters for the object's name and value
+                    command.Parameters.AddWithValue("@name", subscriptionName);
+                    command.Parameters.AddWithValue("@date", date);
+                    command.Parameters.AddWithValue("@parent", container.Id);
+                    command.Parameters.AddWithValue("@event", subscription.Event);
+                    command.Parameters.AddWithValue("@endpoint", subscription.Endpoint);
 
-                try
-                {
-                    // Open the database connection and execute the insert command
-                    connection.Open();
-                    return command.ExecuteNonQuery();
-                }
-                catch (SqlException ex)
-                {
-                    // Handle any errors that may have occurred
-                    Console.WriteLine("Error inserting object into the database: " + ex.Message);
-                    throw new Exception(ex.Message);
+                    try
+                    {
+                        // Open the database connection and execute the insert command
+                        connection.Open();
+                        return command.ExecuteNonQuery();
+                    }
+                    catch (SqlException ex)
+                    {
+                        // Handle any errors that may have occurred
+                        Console.WriteLine("Error inserting object into the database: " + ex.Message);
+                        throw new Exception("Error inserting object into the database.", ex);
+                    }
                 }
             }
         }
@@ -74,21 +75,24 @@ namespace Middleware.Handler
             {
                 // Set up the command to delete object from the database
                 string deleteCommand = "DELETE FROM Subscription WHERE Id = @id AND Parent = @parent";
-                SqlCommand command = new SqlCommand(deleteCommand, connection);
-
-                // Add the parameters for the object's Id and Parent
-                command.Parameters.AddWithValue("@id", subscription.Id);
-                command.Parameters.AddWithValue("@parent", subscription.Parent);
-
-                try
+                using (SqlCommand command = new SqlCommand(deleteCommand, connection))
                 {
-                    // Open the database connection and execute the delete command
-                    connection.Open();
-                    command.ExecuteNonQuery();
-                }
-                catch (SqlException ex)
-                {
-                    throw ex;
+                    // Add the parameters for the object's Id and Parent
+                    command.Parameters.AddWithValue("@id", subscription.Id);
+                    command.Parameters.AddWithValue("@parent", subscription.Parent);
+
+                    try
+                    {
+                        // Open the database connection and execute the delete command
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                    }
+                    catch (SqlException ex)
+                    {
+                        // Handle any errors that may have occurred
+                        Console.WriteLine("Error deleting object from the database: " + ex.Message);
+                        throw new Exception("Error deleting object from the database.", ex);
+                    }
                 }
             }
         }
@@ -97,7 +101,7 @@ namespace Middleware.Handler
         {
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                // Finds Container
+                // Finds Container  
                 Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
                 if (container == null)
                 {
@@ -106,40 +110,43 @@ namespace Middleware.Handler
 
                 // Set up the command to search for the object by name
                 string searchCommand = "SELECT * FROM Subscription WHERE Name = @Name and Parent = @Parent";
-                SqlCommand command = new SqlCommand(searchCommand, connection);
-                command.Parameters.AddWithValue("@Name", subscription_name);
-                command.Parameters.AddWithValue("@Parent", container.Id);
-
-                try
+                using (SqlCommand command = new SqlCommand(searchCommand, connection))
                 {
-                    // Open the database connection and execute the search command
-                    connection.Open();
-                    SqlDataReader reader = command.ExecuteReader();
+                    command.Parameters.AddWithValue("@Name", subscription_name);
+                    command.Parameters.AddWithValue("@Parent", container.Id);
 
-                    // Check if the object was found
-                    if (reader.Read())
+                    try
                     {
-                        // Create a new object using the data from the database
-                        return new Subscription
+                        // Open the database connection and execute the search command
+                        connection.Open();
+                        SqlDataReader reader = command.ExecuteReader();
+
+                        // Check if the object was found
+                        if (reader.Read())
                         {
-                            Id = (int)reader["id"],
-                            Name = (string)reader["name"],
-                            Creation_dt = (DateTime)reader["creation_dt"],
-                            Parent = (int)reader["Parent"],
-                            Event = (string)reader["Event"],
-                            Endpoint = (string)reader["Endpoint"]
-                        };
+                            // Create a new object using the data from the database
+                            return new Subscription
+                            {
+                                Id = (int)reader["id"],
+                                Name = (string)reader["name"],
+                                Creation_dt = (DateTime)reader["creation_dt"],
+                                Parent = (int)reader["Parent"],
+                                Event = (string)reader["Event"],
+                                Endpoint = (string)reader["Endpoint"]
+                            };
+                        }
+                        else
+                        {
+                            // Return null if the object was not found
+                            return null;
+                        }
                     }
-                    else
+                    catch (SqlException ex)
                     {
-                        // Return null if the object was not found
-                        return null;
+                        // Handle any errors that may have occurred
+                        Console.WriteLine("Error retrieving object from the database: " + ex.Message);
+                        throw new Exception("Error retrieving object from the database.", ex);
                     }
-                }
-                catch (SqlException ex)
-                {
-                    // Handle any errors that may have occurred
-                    throw ex;
                 }
             }
         }
