@@ -297,7 +297,6 @@ namespace LightA
         {
             if (typeOfOperation.SelectedItem.Equals("HTTP"))
             {
-                MessageBox.Show("Listening...");
                 // If HTTP is selected, start a timer to periodically check the last data
                 Timer timer = new Timer();
                 timer.Interval = 5000; // 5 seconds interval
