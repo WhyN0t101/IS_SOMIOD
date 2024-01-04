@@ -36,7 +36,7 @@ namespace Middleware.Handler
                 Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
                 if (container == null)
                 {
-                    throw new Exception($"Module '{container_name}' from Application '{application_name}' does not exist");
+                    throw new Exception($"Container '{container_name}' from Application '{application_name}' does not exist");
                 }
 
                 // Add the parameters for the object's name and value
