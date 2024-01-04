@@ -40,6 +40,7 @@
             this.textBoxContainerName = new System.Windows.Forms.TextBox();
             this.richTextBoxLightBulb = new System.Windows.Forms.RichTextBox();
             this.textBoxApplicationName = new System.Windows.Forms.TextBox();
+            this.typeOfOperation = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // label5
@@ -162,12 +163,24 @@
             this.textBoxApplicationName.Size = new System.Drawing.Size(175, 22);
             this.textBoxApplicationName.TabIndex = 13;
             // 
+            // typeOfOperation
+            // 
+            this.typeOfOperation.FormattingEnabled = true;
+            this.typeOfOperation.Items.AddRange(new object[] {
+            "MQTT ",
+            "HTTP"});
+            this.typeOfOperation.Location = new System.Drawing.Point(244, 226);
+            this.typeOfOperation.Name = "typeOfOperation";
+            this.typeOfOperation.Size = new System.Drawing.Size(121, 24);
+            this.typeOfOperation.TabIndex = 25;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ButtonShadow;
             this.ClientSize = new System.Drawing.Size(389, 401);
+            this.Controls.Add(this.typeOfOperation);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
@@ -203,6 +216,7 @@
         private System.Windows.Forms.TextBox textBoxContainerName;
         private System.Windows.Forms.RichTextBox richTextBoxLightBulb;
         private System.Windows.Forms.TextBox textBoxApplicationName;
+        private System.Windows.Forms.ComboBox typeOfOperation;
     }
 }
 
