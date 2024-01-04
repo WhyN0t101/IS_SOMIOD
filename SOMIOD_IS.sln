@@ -13,6 +13,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightA", "LightA\LightA.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote", "Remote\Remote.csproj", "{462C1D4F-E388-428D-ADA3-4989439BED94}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gate", "Gate\Gate.csproj", "{2A4D46FC-8DDC-49B3-AC47-3F0156FC05C6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pictures", "Pictures", "{7E71316E-1D95-4169-85E1-5F871EC55675}"
+	ProjectSection(SolutionItems) = preProject
+		gate-close.png = gate-close.png
+		gate-open.png = gate-open.png
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +47,10 @@ Global
 		{462C1D4F-E388-428D-ADA3-4989439BED94}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{462C1D4F-E388-428D-ADA3-4989439BED94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{462C1D4F-E388-428D-ADA3-4989439BED94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A4D46FC-8DDC-49B3-AC47-3F0156FC05C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A4D46FC-8DDC-49B3-AC47-3F0156FC05C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A4D46FC-8DDC-49B3-AC47-3F0156FC05C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A4D46FC-8DDC-49B3-AC47-3F0156FC05C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

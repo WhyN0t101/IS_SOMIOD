@@ -1,19 +1,23 @@
-﻿using System;
-using RestSharp;
+﻿using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
-using System.Net;
-using System.Xml.Linq;
 
-namespace LightA
+namespace Gate
 {
     public partial class Form1 : Form
     {
+
         MqttClient mClient = null;
         string endpoint = "127.0.0.1";
         string baseURI = @"http://localhost:52885";
@@ -24,18 +28,18 @@ namespace LightA
         public Form1()
         {
             InitializeComponent();
-
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            this.Text = "LightA";
+            this.Text = "Gate";
             client = new RestClient(baseURI);
-            textBoxApplicationName.Text = "light";
-            textBoxContainerName.Text = "light_container";
+            textBoxApplicationName.Text = "gate";
+            textBoxContainerName.Text = "gate_container";
             textBoxSubscriptionName.Text = "sub";
             textBoxSubscriptionEndPoint.Text = "127.0.0.1";
             comboBoxEventType.Text = "creation and deletion";
+
         }
 
         private void buttonCreate_Click(object sender, EventArgs e)
@@ -104,7 +108,7 @@ namespace LightA
                     eventMqt = subscriptionEventType;
                     if (applicationExists != null || containerExists != null)
                     {
-                        MessageBox.Show("Application  or Container already exists and connected");
+                        MessageBox.Show("Application or Container already exists and connected");
                     }
                     else
                     {
@@ -120,8 +124,13 @@ namespace LightA
             {
                 throw new Exception("Could not connect to the server");
             }
+        }
+
+        private void richTextBoxLightBulb_TextChanged(object sender, EventArgs e)
+        {
 
         }
+
 
         void client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
         {
@@ -145,21 +154,14 @@ namespace LightA
                 return;
             }
 
-          
 
             if (message.Equals("ON"))
             {
-                if (richTextBoxLightBulb.InvokeRequired)
-                {
-                    richTextBoxLightBulb.Invoke(new Action(() => richTextBoxLightBulb.BackColor = Color.Yellow));
-                }
+                pictureBox1.Image = Properties.Resources.gate_open;
             }
             else if (message.Equals("OFF"))
             {
-                if (richTextBoxLightBulb.InvokeRequired)
-                {
-                    richTextBoxLightBulb.Invoke(new Action(() => richTextBoxLightBulb.BackColor = Color.Black));
-                }
+                pictureBox1.Image = Properties.Resources.gate_close;
             }
         }
         private Middleware.Models.Application createApplication(string applicationName)
@@ -290,7 +292,7 @@ namespace LightA
                 // Shows Status Code
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
-                   
+
                     return null;
                 }
 
@@ -302,7 +304,7 @@ namespace LightA
                 return null;
             }
         }
-
-
     }
+
 }
+
