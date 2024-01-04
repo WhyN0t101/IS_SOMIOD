@@ -17,103 +17,132 @@ namespace Middleware.Handler
         {
             int idInserted = -1;
 
+            // Parse XML content
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(data.Content);
+
+            // Establish database connection
             using (SqlConnection connection = new SqlConnection(connStr))
             {
+                // Define the SQL insert command
                 string insertCmd = "INSERT INTO Data (name, content, creation_dt, parent) VALUES (@name, @content, @creation_dt, @parent)";
-                SqlCommand command = new SqlCommand(insertCmd, connection);
 
-                string content = doc.SelectSingleNode("//content").InnerText;
-
-
-                command.Parameters.AddWithValue("@name", name);
-                command.Parameters.AddWithValue("@content", content);
-                command.Parameters.AddWithValue("@creation_dt", DateTime.Now);
-
-                Models.Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
-
-                if (container == null)
+                // Create SqlCommand with parameters
+                using (SqlCommand command = new SqlCommand(insertCmd, connection))
                 {
-                    throw new Exception($"No container named {container_name} in application {application_name}");
-                }
+                    // Extract content from XML
+                    string content = doc.SelectSingleNode("//content").InnerText;
 
-                command.Parameters.AddWithValue("@parent", container.Id);
+                    // Set parameters for the SQL command
+                    command.Parameters.AddWithValue("@name", name);
+                    command.Parameters.AddWithValue("@content", content);
+                    command.Parameters.AddWithValue("@creation_dt", DateTime.Now);
 
-                try
-                {
-                    connection.Open();
-                    int rowsInserted = command.ExecuteNonQuery();
+                    // Retrieve container from the database
+                    Models.Container container = ContainerHandler.GetContainerInDatabase(application_name, container_name);
 
-                    if (rowsInserted != 1)
+                    if (container == null)
                     {
-                        throw new Exception("Error inserting object into the database");
+                        throw new Exception($"No container named {container_name} in application {application_name}");
                     }
 
-                    Data newData = GetLastInsertedInDatabaseByContainer(container.Id);
+                    // Add container ID as a parameter
+                    command.Parameters.AddWithValue("@parent", container.Id);
 
-                    if (newData == null)
+                    try
                     {
-                        throw new Exception("Can't find newly created data record in the database");
-                    }
+                        // Open the database connection
+                        connection.Open();
 
-                    idInserted = newData.Id;
-                }
-                catch (SqlException ex)
-                {
-                    Console.WriteLine($"Error inserting object into the database: {ex.Message}");
-                    throw new Exception(ex.Message);
+                        // Execute the SQL insert command
+                        int rowsInserted = command.ExecuteNonQuery();
+
+                        // Check if the insertion was successful
+                        if (rowsInserted != 1)
+                        {
+                            throw new Exception("Error inserting object into the database");
+                        }
+
+                        // Retrieve the last inserted data record
+                        Data newData = GetLastInsertedInDatabaseByContainer(container.Id);
+
+                        // Check if the newly created data record was found
+                        if (newData == null)
+                        {
+                            throw new Exception("Can't find newly created data record in the database");
+                        }
+
+                        // Set the ID of the inserted record
+                        idInserted = newData.Id;
+                    }
+                    catch (SqlException ex)
+                    {
+                        // Handle SQL exceptions
+                        Console.WriteLine($"Error inserting data into the database: {ex.Message}");
+                        throw new Exception("Error inserting data into the database.", ex);
+                    }
                 }
             }
+
+            // Return the ID of the inserted record
             return idInserted;
         }
 
         public static Data GetLastInsertedInDatabaseByContainer(int container_id)
         {
+            // Establish database connection
             using (SqlConnection connection = new SqlConnection(connStr))
             {
+                // Define the SQL select command to retrieve the last inserted data record by container ID
                 string searchNewlyInsertedData = "SELECT TOP 1 * FROM Data WHERE Parent = @parent ORDER BY Id DESC";
-                SqlCommand cmdSelect = new SqlCommand(searchNewlyInsertedData, connection);
-                cmdSelect.Parameters.AddWithValue("@parent", container_id);
 
-                try
+                // Create SqlCommand with parameters
+                using (SqlCommand cmdSelect = new SqlCommand(searchNewlyInsertedData, connection))
                 {
-                    // Open the database connection
-                    connection.Open();
+                    // Add container ID as a parameter
+                    cmdSelect.Parameters.AddWithValue("@parent", container_id);
 
-                    using (SqlDataReader reader = cmdSelect.ExecuteReader())
+                    try
                     {
-                        // Check if the object was found
-                        if (reader.Read())
+                        connection.Open();
+
+                        // Execute the SQL select command
+                        using (SqlDataReader reader = cmdSelect.ExecuteReader())
                         {
-                            // Create a new object using the data from the database
-                            Data data = new Data
+                            // Check if the object was found
+                            if (reader.Read())
                             {
-                                Id = (int)reader["Id"],
-                                Content = (string)reader["content"],
-                                Creation_dt = (DateTime)reader["creation_dt"],
-                                Parent = (int)reader["parent"]
-                            };
-                            return data;
-                        }
-                        else
-                        {
-                            // Return null if the object was not found
-                            return null;
+                                // Create a new Data object using the data from the database
+                                Data data = new Data
+                                {
+                                    Id = (int)reader["Id"],
+                                    Content = (string)reader["content"],
+                                    Creation_dt = (DateTime)reader["creation_dt"],
+                                    Parent = (int)reader["parent"]
+                                };
+                                return data;
+                            }
+                            else
+                            {
+                                return null;
+                            }
                         }
                     }
-                }
-                catch (SqlException ex)
-                {
-                    // Handle any errors that may have occurred
-                    throw ex;
+                    catch (SqlException ex)
+                    {
+                        // Handle SQL exceptions
+                        Console.WriteLine($"Error retrieving data from the database: {ex.Message}");
+                        throw new Exception("Error retrieving data from the database.", ex);
+                    }
                 }
             }
         }
 
 
+
         public static Data GetDataFromDatabase(string application_name, string container_name, int data_id)
         {
+            // Establish database connection
             using (SqlConnection connection = new SqlConnection(connStr))
             {
                 // Find Application
@@ -134,40 +163,44 @@ namespace Middleware.Handler
 
                 // Set up the command to search for the object by name
                 string searchCommand = "SELECT * FROM Data WHERE Id = @Id and Parent = @Parent";
-                SqlCommand command = new SqlCommand(searchCommand, connection);
-                command.Parameters.AddWithValue("@Id", data_id);
-                command.Parameters.AddWithValue("@Parent", container.Id);
-
-                try
+                using (SqlCommand command = new SqlCommand(searchCommand, connection))
                 {
-                    // Open the database connection and execute the search command
-                    connection.Open();
-                    SqlDataReader reader = command.ExecuteReader();
+                    // Add parameters for data ID and container ID
+                    command.Parameters.AddWithValue("@Id", data_id);
+                    command.Parameters.AddWithValue("@Parent", container.Id);
 
-                    // Check if the object was found
-                    if (reader.Read())
+                    try
                     {
-                        // Create a new object using the data from the database
-                        Data data = new Data
+                        // Open the database connection and execute the search command
+                        connection.Open();
+                        SqlDataReader reader = command.ExecuteReader();
+
+                        // Check if the object was found
+                        if (reader.Read())
                         {
-                            Id = (int)reader["id"],
-                            Name = (string)reader["name"],
-                            Content = (string)reader["content"],
-                            Creation_dt = (DateTime)reader["creation_dt"],
-                            Parent = (int)reader["parent"]
-                        };
-                        return data;
+                            // Create a new object using the data from the database
+                            Data data = new Data
+                            {
+                                Id = (int)reader["id"],
+                                Name = (string)reader["name"],
+                                Content = (string)reader["content"],
+                                Creation_dt = (DateTime)reader["creation_dt"],
+                                Parent = (int)reader["parent"]
+                            };
+                            return data;
+                        }
+                        else
+                        {
+                            // Return null if the object was not found
+                            return null;
+                        }
                     }
-                    else
+                    catch (SqlException ex)
                     {
-                        // Return null if the object was not found
-                        return null;
+                        // Handle SQL exceptions
+                        Console.WriteLine($"Error retrieving Data from the database: {ex.Message}");
+                        throw new Exception("Error retrieving Data from the database.", ex);
                     }
-                }
-                catch (SqlException ex)
-                {
-                    // Handle any errors that may have occurred
-                    throw ex;
                 }
             }
         }
@@ -184,22 +217,30 @@ namespace Middleware.Handler
             using (SqlConnection connection = new SqlConnection(connStr))
             {
                 // Set up the command to delete object from the database
-                string insertCommand = "DELETE FROM Data WHERE name = @Name";
-                SqlCommand command = new SqlCommand(insertCommand, connection);
-
-                command.Parameters.AddWithValue("@Name", data_name);
-
-                try
+                string deleteCommand = "DELETE FROM Data WHERE name = @Name";
+                using (SqlCommand command = new SqlCommand(deleteCommand, connection))
                 {
-                    connection.Open();
-                    command.ExecuteNonQuery();
-                }
-                catch (SqlException ex)
-                {
-                    throw new Exception(ex.Message);
+                    // Add parameter for data name
+                    command.Parameters.AddWithValue("@Name", data_name);
+
+                    try
+                    {
+                        // Open the database connection
+                        connection.Open();
+
+                        // Execute the SQL delete command
+                        command.ExecuteNonQuery();
+                    }
+                    catch (SqlException ex)
+                    {
+                        // Handle SQL exceptions
+                        Console.WriteLine($"Error deleting Data from the database: {ex.Message}");
+                        throw new Exception("Error deleting Data from the database.", ex);
+                    }
                 }
             }
         }
+
         public static List<Data> GetAllDataFromContainer(string application_name, string container_name)
         {
             // Creates a list for all data entries
@@ -216,41 +257,47 @@ namespace Middleware.Handler
                 }
                 //Gets all data from container
                 string searchCommand = "SELECT * FROM Data WHERE Parent = @Parent";
-                SqlCommand command = new SqlCommand(searchCommand, connection);
-                command.Parameters.AddWithValue("@Parent", container.Id);
+                using (SqlCommand command = new SqlCommand(searchCommand, connection))
+                {
+                    command.Parameters.AddWithValue("@Parent", container.Id);
 
-                try
-                {
-                    //Opens connection and executes the querry
-                    connection.Open();
-                    SqlDataReader reader = command.ExecuteReader();
-                    //Reads each data entrie
-                    while (reader.Read())
+                    try
                     {
-                        Data data = new Data
+                        //Opens connection and executes the querry
+                        connection.Open();
+                        SqlDataReader reader = command.ExecuteReader();
+                        //Reads each data entrie
+                        while (reader.Read())
                         {
-                            Id = (int)reader["id"],
-                            Name= (string)reader["name"],   
-                            Content = (string)reader["content"],
-                            Creation_dt = (DateTime)reader["creation_dt"],
-                            Parent = (int)reader["parent"]
-                        };
-                        //Add the entrie to the list
-                        dataList.Add(data);
+                            Data data = new Data
+                            {
+                                Id = (int)reader["id"],
+                                Name = (string)reader["name"],
+                                Content = (string)reader["content"],
+                                Creation_dt = (DateTime)reader["creation_dt"],
+                                Parent = (int)reader["parent"]
+                            };
+                            //Add the entrie to the list
+                            dataList.Add(data);
+                        }
                     }
-                }
-                catch (SqlException ex)
-                {
-                    throw new Exception(ex.Message);
+                    catch (SqlException ex)
+                    {
+                        Console.WriteLine($"Error retrieving Data from the database: {ex.Message}");
+                        throw new Exception("Error retrieving Data from the database.", ex);
+                    }
                 }
             }
 
             return dataList;
         }
+
         public static Data GetDataByName(string application_name, string container_name, string data_name)
         {
+            // Establish database connection
             using (SqlConnection connection = new SqlConnection(connStr))
             {
+                // Find Application
                 Application application = AppHandler.GetApplicationFromDatabase(application_name);
 
                 if (application == null)
@@ -258,6 +305,7 @@ namespace Middleware.Handler
                     return null;
                 }
 
+                // Find Container
                 Models.Container container = ContainerHandler.GetContainerInDatabase(application.Name, container_name);
 
                 if (container == null)
@@ -265,53 +313,72 @@ namespace Middleware.Handler
                     return null;
                 }
 
+                // Define the SQL select command to retrieve the data record by name and container ID
                 string searchCommand = "SELECT * FROM Data WHERE name = @name and Parent = @Parent";
-                SqlCommand command = new SqlCommand(searchCommand, connection);
-                command.Parameters.AddWithValue("@name", data_name);
-                command.Parameters.AddWithValue("@Parent", container.Id);
 
-                try
+                // Create SqlCommand with parameters
+                using (SqlCommand command = new SqlCommand(searchCommand, connection))
                 {
-                    connection.Open();
-                    SqlDataReader reader = command.ExecuteReader();
+                    command.Parameters.AddWithValue("@name", data_name);
+                    command.Parameters.AddWithValue("@Parent", container.Id);
 
-                    if (reader.Read())
+                    try
                     {
-                        Data data = new Data
+                        connection.Open();
+                        // Execute the SQL select command
+                        using (SqlDataReader reader = command.ExecuteReader())
                         {
-                            Id = (int)reader["id"],
-                            Name = (string)reader["name"],
-                            Content = (string)reader["content"],
-                            Creation_dt = (DateTime)reader["creation_dt"],
-                            Parent = (int)reader["parent"]
-                        };
-                        return data;
+
+                            if (reader.Read())
+                            {
+                                // Create a new Data object using the data from the database
+                                Data data = new Data
+                                {
+                                    Id = (int)reader["id"],
+                                    Name = (string)reader["name"],
+                                    Content = (string)reader["content"],
+                                    Creation_dt = (DateTime)reader["creation_dt"],
+                                    Parent = (int)reader["parent"]
+                                };
+                                return data;
+                            }
+                            else
+                            {
+                                return null;
+                            }
+                        }
                     }
-                    else
+                    catch (SqlException ex)
                     {
-                        return null;
+                        // Handle SQL exceptions
+                        Console.WriteLine($"Error retrieving object from the database: {ex.Message}");
+                        throw new Exception("Error retrieving object from the database.", ex);
                     }
-                }
-                catch (SqlException ex)
-                {
-                    throw ex;
                 }
             }
         }
 
         public static void PublishDataToMosquitto(string application_name, string container_name, Data data, string eventMqt)
         {
+            // Create an instance of MqttClient
             MqttClient mcClient = new MqttClient("127.0.0.1");
 
+            // Connect to the MQTT broker
             mcClient.Connect(Guid.NewGuid().ToString());
+
             if (!mcClient.IsConnected)
             {
                 Console.WriteLine("Error connecting to message broker");
                 return;
             }
 
+            // Define the MQTT topic based on application and container names
             string topic = application_name + "/" + container_name;
+            // Publish the data to the MQTT topic
             mcClient.Publish(topic, Encoding.UTF8.GetBytes(eventMqt + ";" + data.Content));
+
+            // Disconnect from the MQTT broker
+            mcClient.Disconnect();
         }
     }
 }
