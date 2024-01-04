@@ -24,6 +24,7 @@ namespace Gate
         RestClient client = null;
         string aContainer = "";
         string eventMqt = "";
+        Timer httpTimer = null;
 
         public Form1()
         {
@@ -38,21 +39,28 @@ namespace Gate
             textBoxContainerName.Text = "gate_container";
             textBoxSubscriptionName.Text = "sub";
             textBoxSubscriptionEndPoint.Text = "127.0.0.1";
-            comboBoxEventType.Text = "creation and deletion";
+            comboBoxEventType.Text = "creation";
 
         }
 
         private void buttonCreate_Click(object sender, EventArgs e)
         {
+            if (typeOfOperation.SelectedItem == null)
+            {
+                MessageBox.Show("Please select a type of operation.");
+                return;
+            }
+
             string applicationName = textBoxApplicationName.Text;
             string containerName = textBoxContainerName.Text;
             string subscriptionName = textBoxSubscriptionName.Text;
 
             if (applicationName.Equals("") && containerName.Equals("") && subscriptionName.Equals(""))
             {
-                MessageBox.Show("Please fill out application, container and subcription name");
+                MessageBox.Show("Please fill out application, container, and subscription name");
                 return;
             }
+
             string subscriptionEventType = comboBoxEventType.GetItemText(comboBoxEventType.SelectedItem);
             if (!subscriptionEventType.Equals("creation") && !subscriptionEventType.Equals("deletion") && !subscriptionEventType.Equals("creation and deletion"))
             {
@@ -66,19 +74,31 @@ namespace Gate
                 MessageBox.Show("Subscription endpoint cannot be empty");
                 return;
             }
+
             applicationName = applicationName.Replace(" ", "-");
             containerName = containerName.Replace(" ", "-");
+
             try
             {
-                if (aContainer != "" && aContainer != containerName)
+                // Disconnect the timer if it's already running
+                if (httpTimer != null && httpTimer.Enabled)
+                {
+                    httpTimer.Stop();
+                    httpTimer.Dispose();
+                }
+
+                // Disconnect MQTT if it's already connected
+                if (mClient != null && mClient.IsConnected)
                 {
                     mClient.Disconnect();
                 }
+
                 string requestName = $"/api/somiod/{applicationName}";
                 string requestContainer = "/api/somiod/" + applicationName + "/container/" + containerName;
 
                 XDocument applicationExists = GetObject(requestName, client, "application");
                 XDocument containerExists = GetObject(requestContainer, client, "container");
+
                 if (applicationExists == null)
                 {
                     Middleware.Models.Application appCreated = createApplication(applicationName);
@@ -86,9 +106,8 @@ namespace Gate
                     {
                         applicationName = appCreated.Name;
                     }
-
-
                 }
+
                 if (containerExists == null)
                 {
                     Middleware.Models.Container containerCreated = createContainer(containerName, applicationName);
@@ -98,38 +117,115 @@ namespace Gate
                     }
                 }
 
-
-                string responseSubscription = createSubscription(subscriptionEventType, subscrptionEndPoint, subscriptionName, containerName, applicationName);
-                if (!responseSubscription.Contains("exists"))
+                if (typeOfOperation.SelectedItem.Equals("HTTP"))
                 {
-                    string topic = applicationName + "/" + containerName;
-                    connectToMosquitto(topic);
-                    aContainer = containerName;
-                    eventMqt = subscriptionEventType;
-                    if (applicationExists != null || containerExists != null)
+                    // If HTTP is selected, start a timer to periodically check the last data
+                    httpTimer = new Timer();
+                    httpTimer.Interval = 5000; // 5 seconds interval
+                    httpTimer.Tick += (timerSender, timerEvent) =>
                     {
-                        MessageBox.Show("Application or Container already exists and connected");
-                    }
-                    else
-                    {
-                        MessageBox.Show("Created and Connected to Server Successfully");
-                    }
+                        HttpOperation(applicationName, containerName);
+                    };
+                    httpTimer.Start();
                 }
                 else
                 {
-                    MessageBox.Show(responseSubscription);
+                    if (httpTimer != null && httpTimer.Enabled)
+                    {
+                        httpTimer.Stop();
+                        httpTimer.Dispose();
+                    }
+                    // If MQTT is selected, connect to Mosquitto
+                    string responseSubscription = createSubscription(subscriptionEventType, subscrptionEndPoint, subscriptionName, containerName, applicationName);
+                    if (!responseSubscription.Contains("exists"))
+                    {
+                        string topic = applicationName + "/" + containerName;
+                        connectToMosquitto(topic);
+                        aContainer = containerName;
+                        eventMqt = subscriptionEventType;
+                        if (applicationExists != null || containerExists != null)
+                        {
+                            MessageBox.Show("Application or Container already exists and connected");
+                        }
+                        else
+                        {
+                            MessageBox.Show("Created and Connected to Server Successfully");
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show(responseSubscription);
+                    }
                 }
+
             }
-            catch
+            catch (Exception ex)
             {
-                throw new Exception("Could not connect to the server");
+                MessageBox.Show($"Could not connect to the server: {ex.Message}");
+            }
+        }
+        private void HttpOperation(string applicationName, string containerName)
+        {
+            if (typeOfOperation.SelectedItem.Equals("HTTP"))
+            {
+                // If HTTP is selected, start a timer to periodically check the last data
+                Timer timer = new Timer();
+                timer.Interval = 5000; // 5 seconds interval
+                timer.Tick += (timerSender, timerEvent) =>
+                {
+                    string lastData = getLastData(applicationName, containerName);
+                    if (lastData != null)
+                    {
+                        // Check the content and display appropriate message box
+                        if (lastData.Equals("ON"))
+                        {
+
+                            pictureBox1.Image = Properties.Resources.gate_open;
+                        }
+                        else if (lastData.Equals("OFF"))
+                        {
+                            pictureBox1.Image = Properties.Resources.gate_close;
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("No data found");
+                    }
+                };
+                timer.Start();
+            }
+        }
+        private string getLastData(string applicationName, string containerName)
+        {
+            // Creates and Executes a GET request
+            RestRequest request = new RestRequest("api/somiod/" + applicationName + "/" + containerName, Method.Get);
+            request.AddHeader("somiod-discover", "data");
+            RestResponse response = client.Execute(request);
+
+            // Creates the XDocument
+            XDocument xDoc = XDocument.Parse(response.Content);
+
+            // Extracts the last Data element
+            XElement lastData = xDoc.Descendants("Data").LastOrDefault();
+
+            // Shows Status Code
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                MessageBox.Show("Resource does not exist");
+                return null;
+            }
+
+            if (lastData != null)
+            {
+                return lastData.Element("content")?.Value;
+            }
+            else
+            {
+                MessageBox.Show("No data found");
+                return null;
             }
         }
 
-        private void richTextBoxLightBulb_TextChanged(object sender, EventArgs e)
-        {
-
-        }
 
 
         void client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
