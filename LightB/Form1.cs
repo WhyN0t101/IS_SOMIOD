@@ -204,14 +204,14 @@ namespace LightB
         {
             try
             {
-                // Creates the Object Module
+                // Creates the Object container
                 Middleware.Models.Container container = new Middleware.Models.Container
                 {
                     Name = containerName,
                     Res_type = "container"
                 };
 
-                // Sends Module to the server
+                // Sends container to the server
                 var request = new RestRequest("/api/somiod/" + applicationName, Method.Post);
                 request.AddXmlBody(container);
                 RestResponse<Middleware.Models.Container> response = client.Execute<Middleware.Models.Container>(request);
@@ -230,7 +230,7 @@ namespace LightB
                 {
                     return null;
                 }
-                throw new Exception("Could not create module");
+                throw new Exception("Could not create container");
             }
         }
 
@@ -272,7 +272,7 @@ namespace LightB
                 }
                 mClient.MqttMsgPublishReceived += client_MqttMsgPublishReceived;
                 byte[] qosLevels = { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE }; //QoS – depends on the topics number
-                                                                                                               // mClient.Subscribe(module, qosLevels)
+                                                                                                               // mClient.Subscribe(container, qosLevels)
                 mClient.Subscribe(new string[] { topic }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
             }
             catch (Exception)

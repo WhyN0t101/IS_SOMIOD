@@ -1,22 +1,24 @@
-﻿using System;
-using RestSharp;
+﻿using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
-using System.Net;
-using System.Xml.Linq;
-using System.Xml;
 
-namespace LightA
+namespace Gate
 {
     public partial class Form1 : Form
     {
+
         MqttClient mClient = null;
-        Timer httpTimer = null; // Add this line to declare the httpTimer
         string endpoint = "127.0.0.1";
         string baseURI = @"http://localhost:52885";
         RestClient client = null;
@@ -26,39 +28,31 @@ namespace LightA
         public Form1()
         {
             InitializeComponent();
-
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            this.Text = "LightA";
+            this.Text = "Gate";
             client = new RestClient(baseURI);
-            textBoxApplicationName.Text = "light";
-            textBoxContainerName.Text = "light_container";
+            textBoxApplicationName.Text = "gate";
+            textBoxContainerName.Text = "gate_container";
             textBoxSubscriptionName.Text = "sub";
             textBoxSubscriptionEndPoint.Text = "127.0.0.1";
-            comboBoxEventType.Text = "creation";
+            comboBoxEventType.Text = "creation and deletion";
 
         }
 
         private void buttonCreate_Click(object sender, EventArgs e)
         {
-            if (typeOfOperation.SelectedItem == null)
-            {
-                MessageBox.Show("Please select a type of operation.");
-                return;
-            }
-
             string applicationName = textBoxApplicationName.Text;
             string containerName = textBoxContainerName.Text;
             string subscriptionName = textBoxSubscriptionName.Text;
 
             if (applicationName.Equals("") && containerName.Equals("") && subscriptionName.Equals(""))
             {
-                MessageBox.Show("Please fill out application, container, and subscription name");
+                MessageBox.Show("Please fill out application, container and subcription name");
                 return;
             }
-
             string subscriptionEventType = comboBoxEventType.GetItemText(comboBoxEventType.SelectedItem);
             if (!subscriptionEventType.Equals("creation") && !subscriptionEventType.Equals("deletion") && !subscriptionEventType.Equals("creation and deletion"))
             {
@@ -72,31 +66,19 @@ namespace LightA
                 MessageBox.Show("Subscription endpoint cannot be empty");
                 return;
             }
-
             applicationName = applicationName.Replace(" ", "-");
             containerName = containerName.Replace(" ", "-");
-
             try
             {
-                // Disconnect the timer if it's already running
-                if (httpTimer != null && httpTimer.Enabled)
-                {
-                    httpTimer.Stop();
-                    httpTimer.Dispose();
-                }
-
-                // Disconnect MQTT if it's already connected
-                if (mClient != null && mClient.IsConnected)
+                if (aContainer != "" && aContainer != containerName)
                 {
                     mClient.Disconnect();
                 }
-
                 string requestName = $"/api/somiod/{applicationName}";
                 string requestContainer = "/api/somiod/" + applicationName + "/container/" + containerName;
 
                 XDocument applicationExists = GetObject(requestName, client, "application");
                 XDocument containerExists = GetObject(requestContainer, client, "container");
-
                 if (applicationExists == null)
                 {
                     Middleware.Models.Application appCreated = createApplication(applicationName);
@@ -104,8 +86,9 @@ namespace LightA
                     {
                         applicationName = appCreated.Name;
                     }
-                }
 
+
+                }
                 if (containerExists == null)
                 {
                     Middleware.Models.Container containerCreated = createContainer(containerName, applicationName);
@@ -115,24 +98,7 @@ namespace LightA
                     }
                 }
 
-                if (typeOfOperation.SelectedItem.Equals("HTTP"))
-                {
-                    // If HTTP is selected, start a timer to periodically check the last data
-                    httpTimer = new Timer();
-                    httpTimer.Interval = 5000; // 5 seconds interval
-                    httpTimer.Tick += (timerSender, timerEvent) =>
-                    {
-                        HttpOperation(applicationName, containerName);
-                    };
-                    httpTimer.Start();
-                }
-                else { 
-                if (httpTimer != null && httpTimer.Enabled)
-                {
-                    httpTimer.Stop();
-                    httpTimer.Dispose();
-                }
-                // If MQTT is selected, connect to Mosquitto
+
                 string responseSubscription = createSubscription(subscriptionEventType, subscrptionEndPoint, subscriptionName, containerName, applicationName);
                 if (!responseSubscription.Contains("exists"))
                 {
@@ -153,13 +119,16 @@ namespace LightA
                 {
                     MessageBox.Show(responseSubscription);
                 }
-                }
-
             }
-            catch (Exception ex)
+            catch
             {
-                MessageBox.Show($"Could not connect to the server: {ex.Message}");
+                throw new Exception("Could not connect to the server");
             }
+        }
+
+        private void richTextBoxLightBulb_TextChanged(object sender, EventArgs e)
+        {
+
         }
 
 
@@ -185,19 +154,14 @@ namespace LightA
                 return;
             }
 
+
             if (message.Equals("ON"))
             {
-                if (richTextBoxLightBulb.InvokeRequired)
-                {
-                    richTextBoxLightBulb.Invoke(new Action(() => richTextBoxLightBulb.BackColor = Color.Yellow));
-                }
+                pictureBox1.Image = Properties.Resources.gate_open;
             }
             else if (message.Equals("OFF"))
             {
-                if (richTextBoxLightBulb.InvokeRequired)
-                {
-                    richTextBoxLightBulb.Invoke(new Action(() => richTextBoxLightBulb.BackColor = Color.Black));
-                }
+                pictureBox1.Image = Properties.Resources.gate_close;
             }
         }
         private Middleware.Models.Application createApplication(string applicationName)
@@ -232,7 +196,6 @@ namespace LightA
                 throw new Exception("Could not create application");
             }
         }
-
 
         private Middleware.Models.Container createContainer(string containerName, string applicationName)
         {
@@ -293,72 +256,6 @@ namespace LightA
             }
         }
 
-        private void HttpOperation(string applicationName, string containerName)
-        {
-            if (typeOfOperation.SelectedItem.Equals("HTTP"))
-            {
-                // If HTTP is selected, start a timer to periodically check the last data
-                Timer timer = new Timer();
-                timer.Interval = 5000; // 5 seconds interval
-                timer.Tick += (timerSender, timerEvent) =>
-                {
-                    string lastData = getLastData(applicationName, containerName);
-                    if (lastData != null)
-                    {
-                        // Check the content and display appropriate message box
-                        if (lastData.Equals("ON"))
-                        {
-
-                            richTextBoxLightBulb.Invoke(new Action(() => richTextBoxLightBulb.BackColor = Color.Yellow));
-
-                        }
-                        else if (lastData.Equals("OFF"))
-                        {
-                            richTextBoxLightBulb.Invoke(new Action(() => richTextBoxLightBulb.BackColor = Color.Black));
-
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("No data found");
-                    }
-                };
-                timer.Start();
-            }
-        }
-        private string getLastData(string applicationName, string containerName)
-        {
-            // Creates and Executes a GET request
-            RestRequest request = new RestRequest("api/somiod/" + applicationName + "/" + containerName, Method.Get);
-            request.AddHeader("somiod-discover", "data");
-            RestResponse response = client.Execute(request);
-
-            // Creates the XDocument
-            XDocument xDoc = XDocument.Parse(response.Content);
-
-            // Extracts the last Data element
-            XElement lastData = xDoc.Descendants("Data").LastOrDefault();
-
-            // Shows Status Code
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                MessageBox.Show("Resource does not exist");
-                return null;
-            }
-
-            if (lastData != null)
-            {
-                return lastData.Element("content")?.Value;
-            }
-            else
-            {
-                MessageBox.Show("No data found");
-                return null;
-            }
-        }
-
-
-
         private void connectToMosquitto(string topic)
         {
             try
@@ -407,7 +304,7 @@ namespace LightA
                 return null;
             }
         }
-
-
     }
+
 }
+
