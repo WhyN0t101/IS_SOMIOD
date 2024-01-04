@@ -94,13 +94,19 @@ namespace Middleware.Handler
         public static Application PostToDatabase(Application application)
         {
             //Replace empty spaces
-            string newApplicationName = application.Name.Replace(" ", "_");
+
+            string newApplicationName;
+            
             //Checks if the application already exists
-            if (GetApplicationFromDatabase(newApplicationName) != null)
+            if ( application.Name == null || GetApplicationFromDatabase(application.Name) != null)
             {
                 string baseName = "application";
                 string uniqueName = $"{baseName}_{DateTime.Now.Ticks}";
                 newApplicationName = uniqueName.Replace(" ", "_");
+            }
+            else
+            {
+                newApplicationName = application.Name.Replace(" ", "_");
             }
             //Create SQL connection to DB and creates a SQL querry string
             using (SqlConnection connection = new SqlConnection(connStr))

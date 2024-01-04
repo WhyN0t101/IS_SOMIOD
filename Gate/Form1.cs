@@ -127,6 +127,7 @@ namespace Gate
                         HttpOperation(applicationName, containerName);
                     };
                     httpTimer.Start();
+
                 }
                 else
                 {
@@ -166,8 +167,7 @@ namespace Gate
         }
         private void HttpOperation(string applicationName, string containerName)
         {
-            if (typeOfOperation.SelectedItem.Equals("HTTP"))
-            {
+      
                 // If HTTP is selected, start a timer to periodically check the last data
                 Timer timer = new Timer();
                 timer.Interval = 5000; // 5 seconds interval
@@ -193,7 +193,7 @@ namespace Gate
                     }
                 };
                 timer.Start();
-            }
+            
         }
         private string getLastData(string applicationName, string containerName)
         {

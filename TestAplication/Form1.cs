@@ -66,8 +66,8 @@ namespace TestAplication
 
             if (string.IsNullOrEmpty(applicationName))
             {
-                MessageBox.Show("Please enter the application name");
-                return;
+                MessageBox.Show("No application name given, generating a unique one");
+                
             }
 
             string requestUri = "/api/somiod/";

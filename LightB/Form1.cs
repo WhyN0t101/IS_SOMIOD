@@ -168,7 +168,7 @@ namespace LightB
         {
             if (typeOfOperation.SelectedItem.Equals("HTTP"))
             {
-                // If HTTP is selected, start a timer to periodically check the last data
+               // If HTTP is selected, start a timer to periodically check the last data
                 Timer timer = new Timer();
                 timer.Interval = 5000; // 5 seconds interval
                 timer.Tick += (timerSender, timerEvent) =>
