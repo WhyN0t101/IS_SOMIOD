@@ -17,7 +17,7 @@ namespace Gate
 {
     public partial class Form1 : Form
     {
-
+        //Define default variables
         MqttClient mClient = null;
         string endpoint = "127.0.0.1";
         string baseURI = @"http://localhost:52885";
@@ -33,6 +33,7 @@ namespace Gate
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            //Define default variables
             this.Text = "Gate";
             client = new RestClient(baseURI);
             textBoxApplicationName.Text = "gate";
@@ -45,12 +46,13 @@ namespace Gate
 
         private void buttonCreate_Click(object sender, EventArgs e)
         {
+            //Check the operation type
             if (typeOfOperation.SelectedItem == null)
             {
                 MessageBox.Show("Please select a type of operation.");
                 return;
             }
-
+            // checks if all data is filled
             string applicationName = textBoxApplicationName.Text;
             string containerName = textBoxContainerName.Text;
             string subscriptionName = textBoxSubscriptionName.Text;
@@ -95,7 +97,7 @@ namespace Gate
 
                 string requestName = $"/api/somiod/{applicationName}";
                 string requestContainer = "/api/somiod/" + applicationName + "/container/" + containerName;
-
+                //Checks to see if application or container already exits
                 XDocument applicationExists = GetObject(requestName, client, "application");
                 XDocument containerExists = GetObject(requestContainer, client, "container");
 
@@ -116,7 +118,7 @@ namespace Gate
                         containerName = containerCreated.Name;
                     }
                 }
-
+                //checks the type of operation
                 if (typeOfOperation.SelectedItem.Equals("HTTP"))
                 {
                     // If HTTP is selected, start a timer to periodically check the last data
@@ -130,7 +132,7 @@ namespace Gate
 
                 }
                 else
-                {
+                {   //Disables timer
                     if (httpTimer != null && httpTimer.Enabled)
                     {
                         httpTimer.Stop();
@@ -240,7 +242,7 @@ namespace Gate
                 MessageBox.Show("Something went wrong with Mosquitto. Please try again later");
                 return;
             }
-
+            //checks the event and changes state 
             string eventMosquitto = vars[0].ToLower();
             string message = vars[1];
 
@@ -356,6 +358,7 @@ namespace Gate
         {
             try
             {
+                //Create client to endpoint and checks if its connected
                 mClient = new MqttClient(endpoint);
                 mClient.Connect(Guid.NewGuid().ToString());
                 if (!mClient.IsConnected)
