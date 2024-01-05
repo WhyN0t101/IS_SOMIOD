@@ -13,11 +13,9 @@ using System.Xml.Linq;
 using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
 
-
-
-namespace LightB
+namespace Sprinkler
 {
-    public partial class Form1 : Form
+    public partial class Sprinkler : Form
     {
 
         MqttClient mClient = null;
@@ -27,21 +25,24 @@ namespace LightB
         string aContainer = "";
         string eventMqt = "";
         Timer httpTimer = null;
-        public Form1()
+
+        public Sprinkler()
         {
             InitializeComponent();
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void Sprinkler_Load(object sender, EventArgs e)
         {
-            this.Text = "LightB";
+            this.Text = "Sprinkler";
             client = new RestClient(baseURI);
-            textBoxApplicationName.Text = "light";
-            textBoxContainerName.Text = "light_container";
+            textBoxApplicationName.Text = "sprinker";
+            textBoxContainerName.Text = "sprinkler_container";
             textBoxSubscriptionName.Text = "sub";
             textBoxSubscriptionEndPoint.Text = "127.0.0.1";
-            comboBoxEventType.Text = "creation and deletion";
+            comboBoxEventType.Text = "creation";
+
         }
+
         private void buttonCreate_Click(object sender, EventArgs e)
         {
             if (typeOfOperation.SelectedItem == null)
@@ -126,6 +127,7 @@ namespace LightB
                         HttpOperation(applicationName, containerName);
                     };
                     httpTimer.Start();
+
                 }
                 else
                 {
@@ -162,40 +164,38 @@ namespace LightB
             {
                 MessageBox.Show($"Could not connect to the server: {ex.Message}");
             }
+
         }
 
         private void HttpOperation(string applicationName, string containerName)
         {
-            if (typeOfOperation.SelectedItem.Equals("HTTP"))
+
+            // If HTTP is selected, start a timer to periodically check the last data
+            Timer timer = new Timer();
+            timer.Interval = 5000; // 5 seconds interval
+            timer.Tick += (timerSender, timerEvent) =>
             {
-               // If HTTP is selected, start a timer to periodically check the last data
-                Timer timer = new Timer();
-                timer.Interval = 5000; // 5 seconds interval
-                timer.Tick += (timerSender, timerEvent) =>
+                string lastData = getLastData(applicationName, containerName);
+                if (lastData != null)
                 {
-                    string lastData = getLastData(applicationName, containerName);
-                    if (lastData != null)
+                    // Check the content and display appropriate message box
+                    if (lastData.Equals("ON"))
                     {
-                        // Check the content and display appropriate message box
-                        if (lastData.Equals("ON"))
-                        {
 
-                            richTextBoxLightBulb.Invoke(new Action(() => richTextBoxLightBulb.BackColor = Color.Yellow));
-
-                        }
-                        else if (lastData.Equals("OFF"))
-                        {
-                            richTextBoxLightBulb.Invoke(new Action(() => richTextBoxLightBulb.BackColor = Color.Black));
-
-                        }
+                        pictureBox1.Image = Properties.Resources.sprinkler_on;
                     }
-                    else
+                    else if (lastData.Equals("OFF"))
                     {
-                        MessageBox.Show("No data found");
+                        pictureBox1.Image = Properties.Resources.sprinkler_off;
                     }
-                };
-                timer.Start();
-            }
+                }
+                else
+                {
+                    MessageBox.Show("No data found");
+                }
+            };
+            timer.Start();
+
         }
         private string getLastData(string applicationName, string containerName)
         {
@@ -228,6 +228,8 @@ namespace LightB
             }
         }
 
+
+
         void client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
         {
             string body = Encoding.UTF8.GetString(e.Message);
@@ -251,20 +253,13 @@ namespace LightB
             }
 
 
-
             if (message.Equals("ON"))
             {
-                if (richTextBoxLightBulb.InvokeRequired)
-                {
-                    richTextBoxLightBulb.Invoke(new Action(() => richTextBoxLightBulb.BackColor = Color.Yellow));
-                }
+                pictureBox1.Image = Properties.Resources.sprinkler_on;
             }
             else if (message.Equals("OFF"))
             {
-                if (richTextBoxLightBulb.InvokeRequired)
-                {
-                    richTextBoxLightBulb.Invoke(new Action(() => richTextBoxLightBulb.BackColor = Color.Black));
-                }
+                pictureBox1.Image = Properties.Resources.sprinkler_off;
             }
         }
         private Middleware.Models.Application createApplication(string applicationName)
@@ -380,7 +375,6 @@ namespace LightB
                 throw new Exception("Could not connect to the server");
             }
         }
-
         static public XDocument GetObject(string requestUri, RestClient client, string res_type)
         {
             try
@@ -408,6 +402,5 @@ namespace LightB
                 return null;
             }
         }
-
     }
 }
