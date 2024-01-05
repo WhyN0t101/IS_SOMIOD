@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{41A0C681-768E-4F5F-8163-022CE6D15F4C}</ProjectGuid>
+    <ProjectGuid>{EADF56AE-9035-47AF-A775-C016E09C3F5C}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>LightB</RootNamespace>
-    <AssemblyName>LightB</AssemblyName>
+    <RootNamespace>Sprinkler</RootNamespace>
+    <AssemblyName>Sprinkler</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -100,6 +100,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -114,6 +115,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\sprinkler-off.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\sprinkler-on.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Middleware\Middleware.csproj">

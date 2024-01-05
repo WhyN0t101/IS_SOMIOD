@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace LightB.Properties
+namespace Sprinkler.Properties
 {
 
 
