@@ -35,7 +35,7 @@ namespace Sprinkler
         {
             this.Text = "Sprinkler";
             client = new RestClient(baseURI);
-            textBoxApplicationName.Text = "sprinker";
+            textBoxApplicationName.Text = "sprinkler";
             textBoxContainerName.Text = "sprinkler_container";
             textBoxSubscriptionName.Text = "sub";
             textBoxSubscriptionEndPoint.Text = "127.0.0.1";
