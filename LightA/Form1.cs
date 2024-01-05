@@ -43,12 +43,13 @@ namespace LightA
 
         private void buttonCreate_Click(object sender, EventArgs e)
         {
+            // Validate type of operation
             if (typeOfOperation.SelectedItem == null)
             {
                 MessageBox.Show("Please select a type of operation.");
                 return;
             }
-
+            //Checks for all inputs
             string applicationName = textBoxApplicationName.Text;
             string containerName = textBoxContainerName.Text;
             string subscriptionName = textBoxSubscriptionName.Text;
@@ -90,7 +91,7 @@ namespace LightA
                 {
                     mClient.Disconnect();
                 }
-
+                //Checks if app or container exists
                 string requestName = $"/api/somiod/{applicationName}";
                 string requestContainer = "/api/somiod/" + applicationName + "/container/" + containerName;
 
