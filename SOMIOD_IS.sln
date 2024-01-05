@@ -13,12 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote", "Remote\Remote.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gate", "Gate\Gate.csproj", "{2A4D46FC-8DDC-49B3-AC47-3F0156FC05C6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pictures", "Pictures", "{7E71316E-1D95-4169-85E1-5F871EC55675}"
-	ProjectSection(SolutionItems) = preProject
-		gate-close.png = gate-close.png
-		gate-open.png = gate-open.png
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sprinkler", "Sprinkler\Sprinkler.csproj", "{EADF56AE-9035-47AF-A775-C016E09C3F5C}"
 EndProject
 Global

@@ -15,6 +15,7 @@ namespace LightA
 {
     public partial class Form1 : Form
     {
+        //defines default variables
         MqttClient mClient = null;
         Timer httpTimer = null; // Add this line to declare the httpTimer
         string endpoint = "127.0.0.1";
@@ -31,6 +32,7 @@ namespace LightA
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            //defines default variables
             this.Text = "LightA";
             client = new RestClient(baseURI);
             textBoxApplicationName.Text = "light";
@@ -94,7 +96,7 @@ namespace LightA
                 //Checks if app or container exists
                 string requestName = $"/api/somiod/{applicationName}";
                 string requestContainer = "/api/somiod/" + applicationName + "/container/" + containerName;
-
+                //gets application and container if they exist if not create
                 XDocument applicationExists = GetObject(requestName, client, "application");
                 XDocument containerExists = GetObject(requestContainer, client, "container");
 
@@ -176,7 +178,7 @@ namespace LightA
                 MessageBox.Show("Something went wrong with Mosquitto. Please try again later");
                 return;
             }
-
+            //Check mosquitto message to see state on or off
             string eventMosquitto = vars[0].ToLower();
             string message = vars[1];
 
@@ -364,8 +366,10 @@ namespace LightA
         {
             try
             {
+                //Create new client and connects
                 mClient = new MqttClient(endpoint);
                 mClient.Connect(Guid.NewGuid().ToString());
+                //Checks to see if client is connected
                 if (!mClient.IsConnected)
                 {
                     Console.WriteLine("Error connecting to message broker.");

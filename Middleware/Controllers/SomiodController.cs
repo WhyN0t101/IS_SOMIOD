@@ -261,7 +261,7 @@ namespace Middleware.Controllers
         [HttpGet]
         public IHttpActionResult GetContainerFromApplication(string application_name, string container_name)
         {
-            Models.Container container = null;
+            Models.Container container;
 
             try
             {
@@ -277,7 +277,7 @@ namespace Middleware.Controllers
 
             catch (Exception)
             {
-                return BadRequest();
+                return BadRequest("Unable to get container from" + application_name);
             }
         }
         [Route("api/somiod/{application_name}/{container_name}/data/{data_name}")]
@@ -298,7 +298,7 @@ namespace Middleware.Controllers
 
             catch (Exception)
             {
-                return BadRequest();
+                return BadRequest("unable to get data");
             }
         }
 
@@ -473,7 +473,7 @@ namespace Middleware.Controllers
         public IHttpActionResult GetSubFromDatabase(string application_name, string container_name, string subscription_name)
         {
            
-            Subscription sub = null;
+            Subscription sub;
 
             try
             {
@@ -489,7 +489,7 @@ namespace Middleware.Controllers
 
             catch (Exception)
             {
-                return BadRequest();
+                return BadRequest("Unable to get subscription");
             }
         }
     }
