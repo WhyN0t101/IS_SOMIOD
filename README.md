@@ -22,4 +22,4 @@ Before you begin, make sure you have the following prerequisites installed:
 3. Check for NuGet Packages
 
    ```bash
-   git clone https://github.com/WhyN0t101/voting-app.git
+   git clone https://github.com/WhyN0t101/IS_SOMIOD.git
